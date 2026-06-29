@@ -4,6 +4,8 @@ Live operator-dashboard demo for **Quantum Anomaly Detection (QAD)** applied to 
 
 Open the live demo: **[https://copenhagen-quantum.github.io/qad-fibre-demo/](https://copenhagen-quantum.github.io/qad-fibre-demo/)**
 
+**Release:** v0.3.0 · 2026-06-29
+
 ## What is this?
 
 QAD is a hybrid quantum-classical pipeline for detecting rare events in high-volume sensor streams. This demo shows the operator-facing dashboard against five public fibre-monitoring datasets covering:
@@ -43,3 +45,7 @@ Tim Madsen — `timb.madsen@math.ku.dk`
 ## Note
 
 This is a static snapshot dashboard for demonstration purposes. Streamed events are synthetic, drawn from distributions fitted on published source datasets.
+
+## Versioning
+
+This release: **v0.3.0** (2026-06-29). A version-tagged copy of the dashboard is also archived as `qad_fibre_demo_v0.3.0_2026-06-29.html`. See `SANITIZATION_LOG.md` for the per-rule sanitization audit trail.

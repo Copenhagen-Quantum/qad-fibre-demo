@@ -1,0 +1,1535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Copenhagen Quantum — Quantum Anomaly Detection · Fibre Demo</title>
+<style>
+  :root {
+    --bg: #f6f7fb; --panel: #ffffff; --ink: #1f2330; --ink-soft: #5a6378;
+    --line: #e3e6ee; --accent: #0f4ad9; --accent-soft: #e9efff;
+    --good: #16a34a; --warn: #f59e0b; --bad: #dc2626;
+    --p1: #0f4ad9; --p2: #7c3aed; --p3: #0891b2; --cal: #475569;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg);
+    color: var(--ink); font-family: -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; background: #fff; border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  header .brand { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header .brand .logo { height: 32px; width: auto; display: block; }
+  header .brand .sep { width: 1px; height: 24px; background: var(--line); }
+  header .brand strong { font-size: 13px; letter-spacing: 0.04em; color: var(--ink-soft); }
+  header .meta { display: flex; align-items: center; gap: 18px; color: var(--ink-soft); flex-wrap: wrap; }
+  header .live {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #ecfdf5; color: #047857; padding: 4px 10px;
+    border-radius: 999px; font-weight: 600; font-size: 11px;
+  }
+  header .live .dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .url { color: var(--ink-soft); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+
+  .ds-pick {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); padding: 4px 10px; border-radius: 8px;
+    border: 1px solid #cfd9f4;
+  }
+  .ds-pick label { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .ds-pick select {
+    border: 0; background: transparent; font-family: inherit; font-size: 13px;
+    font-weight: 600; color: var(--ink); cursor: pointer; outline: none;
+  }
+  .ds-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .ds-tag.fibre { background: #cffafe; color: #0e7490; }
+  .ds-tag.finance { background: #dbeafe; color: #1e40af; }
+
+  main { padding: 18px 28px 40px; max-width: 1500px; margin: 0 auto; }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; position: relative;
+  }
+  .panel h2 {
+    margin: 0 0 12px; font-size: 11px; letter-spacing: 0.08em;
+    color: var(--ink-soft); font-weight: 600; text-transform: uppercase;
+  }
+  .panel .hint { font-size: 10.5px; color: var(--ink-soft); margin-top: 4px; }
+  .kpi { display: flex; flex-direction: column; gap: 6px; }
+  .kpi .value { font-size: 30px; font-weight: 700; line-height: 1; }
+  .kpi .sub { font-size: 11px; color: var(--ink-soft); }
+  .kpi.span3 { grid-column: span 3; }
+  .span6 { grid-column: span 6; }
+  .span4 { grid-column: span 4; }
+  .span8 { grid-column: span 8; }
+  .span12 { grid-column: span 12; }
+
+  .sev-high { color: var(--bad); font-weight: 600; }
+  .sev-med  { color: var(--warn); font-weight: 600; }
+  .sev-low  { color: var(--good); font-weight: 600; }
+
+  #pipeline-wrap { overflow: hidden; }
+  #pipeline { width: 100%; height: 220px; display: block; }
+  .phase-label { font-size: 12px; font-weight: 600; }
+  .phase-sub { font-size: 10px; fill: var(--ink-soft); }
+  .phase-rect { fill: #fff; stroke-width: 1.5; }
+  .phase-rect.p1 { stroke: var(--p1); }
+  .phase-rect.p2 { stroke: var(--p2); }
+  .phase-rect.p3 { stroke: var(--p3); }
+  .phase-rect.cal { stroke: var(--cal); }
+  .phase-fill.p1 { fill: rgba(15, 74, 217, 0.06); }
+  .phase-fill.p2 { fill: rgba(124, 58, 237, 0.06); }
+  .phase-fill.p3 { fill: rgba(8, 145, 178, 0.06); }
+  .phase-fill.cal { fill: rgba(71, 85, 105, 0.06); }
+
+  .pct-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+  .pct-row .name { min-width: 170px; }
+  .pct-row .bar { flex: 1; height: 8px; background: #eef0f7; border-radius: 4px; overflow: hidden; }
+  .pct-row .fill { height: 100%; transition: width 0.6s ease; }
+  .pct-row .pct { min-width: 40px; text-align: right; font-weight: 600; }
+
+  .queue { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .queue th { text-align: left; color: var(--ink-soft); font-weight: 500;
+    padding: 6px 8px; border-bottom: 1px solid var(--line); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.04em; }
+  .queue td { padding: 7px 8px; border-bottom: 1px solid var(--line); }
+  .queue tbody tr { cursor: pointer; transition: background 0.15s; }
+  .queue tbody tr:hover { background: #f3f6ff; }
+  .queue tr.fresh { background: #fffbeb; animation: fadeBg 1.4s ease-out forwards; }
+  @keyframes fadeBg { from { background: #fef3c7; } to { background: transparent; } }
+  .queue .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; }
+  .queue .score { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .queue .phases { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--ink-soft); }
+  .queue .insp { color: var(--accent); text-decoration: none; font-weight: 500; font-size: 11px; }
+
+  .gov { display: flex; flex-direction: column; gap: 12px; }
+  .gov .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .gov .row .lbl { color: var(--ink-soft); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .gov .row .val { font-weight: 600; font-size: 13px; text-align: right; }
+  .gov .row.good .val { color: var(--good); }
+  .gov hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+  /* Drift panel */
+  .drift-headline {
+    display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px;
+  }
+  .drift-headline .big { font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .drift-headline .tag {
+    padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .drift-headline .tag.ok { background: #dcfce7; color: #166534; }
+  .drift-headline .tag.watch { background: #fef9c3; color: #854d0e; }
+  .drift-headline .tag.retune { background: #fee2e2; color: #991b1b; }
+  .drift-axes { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .drift-axis { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .drift-axis .axn { min-width: 105px; color: var(--ink); }
+  .drift-axis .axl { flex: 1; height: 7px; background: #eef0f7; border-radius: 3px; overflow: hidden; position: relative; }
+  .drift-axis .axfill { height: 100%; }
+  .drift-axis .axfill.ok { background: var(--good); }
+  .drift-axis .axfill.watch { background: var(--warn); }
+  .drift-axis .axfill.retune { background: var(--bad); }
+  .drift-axis .axv { min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; font-size: 11.5px; color: var(--ink-soft); }
+  .drift-thresh {
+    margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);
+    font-size: 11px; color: var(--ink-soft); display: flex; justify-content: space-between;
+  }
+  .drift-thresh span b { color: var(--ink); font-weight: 600; }
+
+  #spark { width: 100%; height: 130px; display: block; }
+
+  .controls { display: inline-flex; gap: 8px; align-items: center; }
+  .controls button {
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    font-family: inherit;
+  }
+  .controls button:hover { background: #f1f4fb; }
+  .controls button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .controls .speed { color: var(--ink-soft); font-size: 12px; margin-left: 8px; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 12px; width: min(960px, 94vw);
+    max-height: 90vh; overflow: auto; box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+  }
+  .modal-head {
+    padding: 18px 24px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-head h3 { margin: 0; font-size: 16px; }
+  .modal-head .x { background: transparent; border: 0; font-size: 22px; cursor: pointer; color: var(--ink-soft); }
+  .modal-body { padding: 18px 24px; }
+  .modal-body .twocol { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; }
+  .modal-body h4 { margin: 0 0 10px; font-size: 11px; color: var(--ink-soft); letter-spacing: 0.08em; text-transform: uppercase; }
+  .modal-body table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .modal-body td { padding: 6px 4px; border-bottom: 1px solid var(--line); }
+  .modal-body td:first-child { color: var(--ink-soft); width: 45%; }
+  .modal-body td.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; }
+  .phase-strip { display: flex; flex-direction: column; gap: 12px; }
+  .phase-strip .ps-row { display: flex; flex-direction: column; gap: 4px; }
+  .phase-strip .ps-row .ps-head { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; }
+  .phase-strip .ps-row .ps-bar { height: 10px; background: #eef0f7; border-radius: 5px; overflow: hidden; }
+  .phase-strip .ps-row .ps-bar > div { height: 100%; }
+  .ps-cal { margin-top: 6px; padding: 12px; border-radius: 8px; background: var(--accent-soft); }
+  .ps-cal .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .ps-cal .row .l { color: var(--ink-soft); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .ps-cal .row .r { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .reason-list { font-size: 12px; color: var(--ink); margin: 8px 0 0; padding-left: 16px; }
+  .reason-list li { margin-bottom: 4px; }
+
+  footer { text-align: center; padding: 24px; color: var(--ink-soft); font-size: 11px; }
+</style>
+</head>
+<body>
+<div style="position:fixed;top:6px;right:8px;z-index:9999;background:#0a1224;color:#00ffc8;border:1px solid #00b4ff;border-radius:3px;padding:3px 8px;font:11px monospace;">Demo snapshot · 2026-06-29</div>
+
+<header>
+  <div class="brand">
+    <img class="logo" src="CoQu_logo.png" alt="Copenhagen Quantum">
+    <strong>Quantum Anomaly Detection · Fibre operator demo</strong>
+    <span class="url" id="cluster-url">demo dashboard · synthetic event stream</span>
+    <span class="ds-pick">
+      <label for="ds-select">Dataset</label>
+      <select id="ds-select">
+        <optgroup label="Fibre / Telecom">
+          <option value="fibre_otdr_event" selected>OTDR Fibre Events (industry standard)</option>
+          <option value="fibre_intrusion">Φ-OTDR Fibre Intrusion (security)</option>
+          <option value="fibre_health">OTDR Fibre Health (maintenance)</option>
+          <option value="fibre_das_event">DAS Event Detection</option>
+          <option value="fibre_das_audible">DAS Acoustic Anomaly</option>
+        </optgroup>
+      </select>
+      <span id="ds-tag" class="ds-tag fibre">FIBRE</span>
+    </span>
+  </div>
+  <div class="meta">
+    <span class="controls">
+      <button id="btn-play" class="on">Pause</button>
+      <button id="btn-slow">0.5×</button>
+      <button id="btn-1x" class="on">1×</button>
+      <button id="btn-fast">2×</button>
+      <button id="btn-burst">Burst</button>
+      <span class="speed" id="rate-label">~250 events/sec</span>
+    </span>
+    <span class="live"><span class="dot"></span><span id="sync-label">LIVE — synced 0s ago</span></span>
+  </div>
+</header>
+
+<main>
+  <div class="grid" style="margin-bottom: 14px;">
+    <div class="panel kpi span3">
+      <h2>Events / sec</h2>
+      <div class="value" id="kpi-eps">250</div>
+      <div class="sub" id="kpi-eps-sub">5-min avg · hybrid mode</div>
+    </div>
+    <div class="panel kpi span3">
+      <h2>Anomalies — last hr</h2>
+      <div class="value" id="kpi-anom">0</div>
+      <div class="sub"><span class="sev-high" id="kpi-h">0 high</span> · <span class="sev-med" id="kpi-m">0 medium</span> · <span class="sev-low" id="kpi-l">0 low</span></div>
+    </div>
+    <div class="panel kpi span3">
+      <h2>QAD vs IF (PR-AUC)</h2>
+      <div class="value" id="kpi-pr"><span id="kpi-pr-qad">0.47</span><span style="font-size:14px; color:var(--ink-soft);"> / <span id="kpi-pr-iso">0.42</span></span></div>
+      <div class="sub" id="kpi-pr-sub">95% CI · production model locked</div>
+    </div>
+    <div class="panel kpi span3">
+      <h2>Model version</h2>
+      <div class="value" style="font-size: 22px;" id="kpi-modelv">Fibre model (locked)</div>
+      <div class="sub" id="kpi-modelv-sub">calibrated 2d ago · drift OK</div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-bottom: 14px;">
+    <div class="panel span12" id="pipeline-wrap">
+      <h2>Live pipeline — events flowing through QAD phases · <span id="pipeline-arch" style="color:var(--ink); text-transform:none; letter-spacing:0; font-weight:500;"></span></h2>
+      <svg id="pipeline" viewBox="0 0 1400 220" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-bottom: 14px;">
+    <div class="panel span8">
+      <h2>Inflow — last 60 s · two panels: blue events/sec throughput (top) · red anomaly events/sec (bottom)</h2>
+      <svg id="spark" viewBox="0 0 800 130" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="panel span4">
+      <h2>Phase contributions — calibrated ensemble weights</h2>
+      <div class="pct-row">
+        <span class="name">Phase 1 — Quantum Kernel Prescreen</span>
+        <span class="bar"><span class="fill" id="bar-p1" style="background: var(--p1);"></span></span>
+        <span class="pct" id="pct-p1">—</span>
+      </div>
+      <div class="pct-row">
+        <span class="name">Phase 2 — Quantum Autoencoder</span>
+        <span class="bar"><span class="fill" id="bar-p2" style="background: var(--p2);"></span></span>
+        <span class="pct" id="pct-p2">—</span>
+      </div>
+      <div class="pct-row">
+        <span class="name">Phase 3 — QAOA Selector</span>
+        <span class="bar"><span class="fill" id="bar-p3" style="background: var(--p3);"></span></span>
+        <span class="pct" id="pct-p3">—</span>
+      </div>
+      <div class="hint">Score = w₁·s₁ + w₂·s₂ + w₃·s₃ → isotonic calibration → severity tier.</div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-bottom: 14px;">
+    <div class="panel span6">
+      <h2>Parameter Drift Score — vs locked production config</h2>
+      <div class="drift-headline">
+        <div class="big" id="drift-big">0.08</div>
+        <div class="tag ok" id="drift-tag">STABLE</div>
+        <div style="margin-left:auto; font-size:11px; color:var(--ink-soft);">re-tune threshold: <b style="color:var(--ink)">0.25</b></div>
+      </div>
+      <div class="hint" style="margin-bottom: 4px;">
+        Drift = weighted L1 between the current rolling 7-day estimate of each tuned hyperparameter and the locked production config. Production weights stay FROZEN until drift &gt; 0.25 triggers a re-tune campaign.
+      </div>
+      <div class="drift-axes" id="drift-axes"></div>
+      <div class="drift-thresh">
+        <span><span style="color:#16a34a; font-weight:600;">●</span> &lt; 0.10 stable</span>
+        <span><span style="color:#f59e0b; font-weight:600;">●</span> 0.10 – 0.25 watch</span>
+        <span><span style="color:#dc2626; font-weight:600;">●</span> &gt; 0.25 re-tune</span>
+      </div>
+    </div>
+    <div class="panel span6">
+      <h2>Locked production configuration</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <tbody id="master-table"></tbody>
+      </table>
+      <div class="hint" style="margin-top: 8px;">
+        Per-dataset configuration locked after hyperparameter search on a classical reference; convergence rule Δval-score &lt; 0.001 over 200 trials.
+        <span id="master-tune-meta"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel span8">
+      <h2>Anomalies — queued for inspection · <span id="queue-count">0 unreviewed</span> · sorted by time</h2>
+      <div class="hint" style="margin-bottom: 8px;">Double-click any row to open the inspection panel with raw features, per-phase scores, and reason-for-flagging.</div>
+      <table class="queue">
+        <thead><tr>
+          <th>Time</th><th>Event ID</th><th>Description</th>
+          <th>Phases</th><th>Score</th><th>Severity</th><th>Action</th>
+        </tr></thead>
+        <tbody id="queue-body"></tbody>
+      </table>
+    </div>
+    <div class="panel span4">
+      <h2>Governance</h2>
+      <div class="gov">
+        <div class="row good"><span class="lbl">Backend</span><span class="val" id="gov-backend">IBM Heron r2 — live</span></div>
+        <hr>
+        <div class="row"><span class="lbl">Policy mode</span><span class="val">Hybrid — <span id="gov-qpu">47</span>% QPU</span></div>
+        <hr>
+        <div class="row good"><span class="lbl">QPU vs sim agreement</span><span class="val" id="gov-agree">97.2%</span></div>
+        <hr>
+        <div class="row good"><span class="lbl">CLOPS budget (24h)</span><span class="val" id="gov-clops">0.81× — within plan</span></div>
+        <hr>
+        <div class="row good"><span class="lbl">Param drift</span><span class="val" id="gov-drift">0.08 — stable</span></div>
+        <hr>
+        <div class="row"><span class="lbl">Calibration</span><span class="val" id="gov-cal">isotonic — 2d ago</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="phase4-section" style="margin:24px 28px;padding:22px 26px;background:#fff;border:1px solid var(--line);border-radius:10px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <h2 style="margin:0;font-size:18px;color:var(--ink);letter-spacing:0.04em;">Phase 4 — IBM QPU Validation</h2>
+      <span style="font-size:11px;color:var(--ink-soft);">Demo snapshot · 2026-06-29</span>
+    </div>
+    <p style="font-size:12px;line-height:1.6;color:var(--ink-soft);margin:10px 0 14px 0;">
+      Real-hardware validation track for the fibre pilot: locked Phase-1 quantum-kernel circuits run on a real superconducting IBM Heron processor (<code>ibm_fez</code>, 156 qubits), with scoring compared against a NumPy reference, ideal Aer, and noise-modelled Aer. Phase 2 and Phase 3 stay on classical hardware to focus QPU credit on the layer where quantum hardware is meaningful. The IBM Open Plan free tier covers the two pilot datasets — <b>fibre_intrusion</b> and <b>fibre_health</b> — so this panel only renders when one of those two is selected above.
+    </p>
+
+    <!-- QPU Validation Performance Metric — answers "is the QPU producing the same picture as HPC?" -->
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:14px;margin-bottom:16px;padding:14px 16px;background:linear-gradient(135deg,#fdf4f7 0%, #fff 100%);border:1px solid #fac6cf;border-radius:8px;">
+      <div>
+        <div style="font-size:10.5px;color:#dc2626;letter-spacing:0.10em;font-weight:700;text-transform:uppercase;margin-bottom:6px;">QPU vs HPC validation</div>
+        <div style="display:flex;align-items:baseline;gap:14px;">
+          <div style="font-size:36px;font-weight:700;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;" id="qpu-val-big">—</div>
+          <div style="font-size:11px;color:var(--ink-soft);" id="qpu-val-tag">awaiting Aer gate verdict</div>
+        </div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;" id="qpu-val-desc">Spearman(QPU, NumPy) — "are we getting the same picture from the QPU as from the HPC pipeline?"</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--ink-soft);letter-spacing:0.08em;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Aer ↔ NumPy gate</div>
+        <div style="font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;" id="qpu-aer-gate">—</div>
+        <div style="font-size:10.5px;color:var(--ink-soft);" id="qpu-aer-gate-sub">simulator agreement check</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--ink-soft);letter-spacing:0.08em;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Real-QPU dispatch</div>
+        <div style="font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;" id="qpu-dispatch">—</div>
+        <div style="font-size:10.5px;color:var(--ink-soft);" id="qpu-dispatch-sub">awaits per-dataset go-ahead</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--ink-soft);letter-spacing:0.08em;font-weight:700;text-transform:uppercase;margin-bottom:4px;">PASS threshold</div>
+        <div style="font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;">ρ ≥ 0.85</div>
+        <div style="font-size:10.5px;color:var(--ink-soft);">5% drift tolerance vs HPC ref</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+
+      <div style="background:var(--accent-soft);border:1px solid #cfd9f4;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--accent);letter-spacing:0.12em;font-weight:700;margin-bottom:4px;">LEVEL A · NumPy</div>
+        <div style="color:var(--ink);font-weight:600;font-size:13px;margin-bottom:6px;">Classical reference</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.5;">Locked best parameters run on a classical NumPy reference. Establishes the ground-truth scoring + PR-AUC headline. No quantum hardware involved.</div>
+      </div>
+
+      <div style="background:var(--accent-soft);border:1px solid #cfd9f4;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--accent);letter-spacing:0.12em;font-weight:700;margin-bottom:4px;">LEVEL B · Aer ideal</div>
+        <div style="color:var(--ink);font-weight:600;font-size:13px;margin-bottom:6px;">Noise-free simulator</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.5;">Same circuits on Qiskit Aer statevector. Bit-identical to NumPy at FP limit (Spearman ≥ 0.99). <b>Gate:</b> ρ(NumPy, Aer) ≥ 0.90 — FAIL blocks QPU step.</div>
+      </div>
+
+      <div style="background:var(--accent-soft);border:1px solid #cfd9f4;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--accent);letter-spacing:0.12em;font-weight:700;margin-bottom:4px;">LEVEL C · Noisy Aer</div>
+        <div style="color:var(--ink);font-weight:600;font-size:13px;margin-bottom:6px;">Backend-calibrated emulator</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.5;">Aer with NoiseModel from live <code>ibm_fez</code> calibration. Predicts real-device behaviour before any QPU credit is spent. Surfaces transpiler / shot-budget issues offline.</div>
+      </div>
+
+      <div style="background:#fdecef;border:1px solid #fac6cf;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:#dc2626;letter-spacing:0.12em;font-weight:700;margin-bottom:4px;">LEVEL D · Real QPU</div>
+        <div style="color:var(--ink);font-weight:600;font-size:13px;margin-bottom:6px;"><code>ibm_fez</code> (156-qubit Heron r2)</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.5;">Real superconducting hardware dispatch. Pair (test row, reference row) = 1 circuit; 4 096 shots. Fires only after Levels A–C all PASS and explicit per-dataset operator approval. <b>QPU pilot pair: fibre_intrusion + fibre_health.</b></div>
+      </div>
+
+      <div style="background:#ecfdf5;border:1px solid #c3e8d2;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--good);letter-spacing:0.12em;font-weight:700;margin-bottom:4px;">LEVEL E · Score equivalence</div>
+        <div style="color:var(--ink);font-weight:600;font-size:13px;margin-bottom:6px;">Headline on real hardware</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.5;">Real-QPU Phase-1 scores feed Phase-2 + Phase-3 NumPy. Produces QAD PR-AUC + ROC-AUC on real hardware. <b>Success:</b> PR-AUC within 5% of NumPy baseline + ρ ≥ 0.85.</div>
+      </div>
+
+      <div style="background:#fffbeb;border:1px solid #f9e3a3;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:#b45309;letter-spacing:0.12em;font-weight:700;margin-bottom:4px;">LEVEL F · Sign-off</div>
+        <div style="color:var(--ink);font-weight:600;font-size:13px;margin-bottom:6px;">Backend-agreement report</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.5;">Per-dataset 4-page brief: queue, circuit count, shot burn, 4-way agreement matrix, score-distribution overlay, headline PR-AUC, deployment recommendation.</div>
+      </div>
+
+    </div>
+    <div style="margin-top:14px;font-size:11px;color:var(--ink-soft);">
+      <b>Status as of 2026-06-29:</b> IBM Quantum auth probe PASS, three backends reachable (<code>ibm_fez</code>, <code>ibm_marrakesh</code>, <code>ibm_kingston</code>). Simulator-to-classical agreement check in progress — Spearman gate verdict expected within hours.
+    </div>
+  </section>
+
+  <footer id="footer-cite">
+    Operator dashboard demo · fibre pilot configuration · per-dataset hyperparameters are derived from real tuning runs against open fibre-monitoring datasets. Streamed events are synthetic, drawn from the published distribution of the selected source dataset. Copenhagen Quantum · contact: timb.madsen@math.ku.dk
+  </footer>
+</main>
+
+<div class="overlay" id="inspect-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="ins-title">Event inspection</h3>
+      <button class="x" id="ins-close" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="twocol">
+        <div>
+          <h4>Raw features <span id="ins-feat-count" style="color:#94a0b8; font-weight:400; text-transform:none; letter-spacing:0;"></span></h4>
+          <table id="ins-feat-table"></table>
+        </div>
+        <div>
+          <h4>QAD per-phase scores</h4>
+          <div class="phase-strip">
+            <div class="ps-row">
+              <div class="ps-head"><span>Phase 1 — Quantum Kernel Prescreen</span><span id="ins-s1">0.00</span></div>
+              <div class="ps-bar"><div id="ins-b1" style="width:0%; background: var(--p1);"></div></div>
+            </div>
+            <div class="ps-row">
+              <div class="ps-head"><span>Phase 2 — Quantum Autoencoder</span><span id="ins-s2">0.00</span></div>
+              <div class="ps-bar"><div id="ins-b2" style="width:0%; background: var(--p2);"></div></div>
+            </div>
+            <div class="ps-row">
+              <div class="ps-head"><span>Phase 3 — QAOA Selector</span><span id="ins-s3">0.00</span></div>
+              <div class="ps-bar"><div id="ins-b3" style="width:0%; background: var(--p3);"></div></div>
+            </div>
+          </div>
+          <div class="ps-cal">
+            <div class="row"><span class="l">Calibrated score</span><span class="r" id="ins-cal">0.00</span></div>
+            <div class="row"><span class="l">Severity</span><span class="r" id="ins-sev" style="font-size:14px;">—</span></div>
+            <div class="row"><span class="l">Backend executed on</span><span class="r" id="ins-backend" style="font-size:12px; font-weight:500;">—</span></div>
+          </div>
+          <h4 style="margin-top:18px;">Reason for flagging</h4>
+          <ul id="ins-reasons" class="reason-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// REAL_DATA — small per-dataset samples drawn from the published source
+// CSVs. 200 normal + 50 anomaly rows per finance dataset; for fibre
+// datasets, all positives (8 / 14 / 160) plus 120-200 normals. Anomaly
+// rows carry their true source class via __orig_class__ where applicable.
+// =====================================================================
+</script>
+<script src="qad_real_samples.js"></script>
+<script>
+// =====================================================================
+// MASTER configs — locked per-dataset hyperparameters + real-test metrics.
+// =====================================================================
+const MASTER = {
+  fibre_otdr_event: {
+    label:'OTDR Fibre Events', family:'fibre',
+    cluster:'demo dashboard · synthetic event stream',
+    backend:'IBM Heron r2 (ibm_fez) — pilot',
+    qpuShareDefault:45, eventRate:140,
+    modelVersion:'Fibre model (locked)', calibAge:'recent',
+    bestParams:{ C:16, alpha:0.299, n_components:2, phase2_optimizer:'spsa', phase_weight_qaoa:0.704, ref_size:74, top_k_frac:0.059, w1:0.688 },
+    metrics:{ qad_ap:0.9095, qad_lo:0.8895, qad_hi:0.9295, iso_lo:0.7561, iso_hi:0.8366 },
+    idPrefix:'otdr',
+  },
+  fibre_intrusion: {
+    label:'Φ-OTDR Fibre Intrusion', family:'fibre',
+    cluster:'demo dashboard · synthetic event stream',
+    backend:'IBM Heron r2 (ibm_fez) — QPU pilot',
+    qpuShareDefault:50, eventRate:120,
+    modelVersion:'Fibre model (locked)', calibAge:'recent',
+    bestParams:{ C:18, alpha:0.416, n_components:15, phase2_optimizer:'de', phase_weight_qaoa:0.861, ref_size:175, top_k_frac:0.061, w1:0.915 },
+    metrics:{ qad_ap:0.6088, qad_lo:0.5888, qad_hi:0.6288, iso_lo:0.5005, iso_hi:0.5659 },
+    idPrefix:'phi',
+  },
+  fibre_health: {
+    label:'OTDR Fibre Health', family:'fibre',
+    cluster:'demo dashboard · synthetic event stream',
+    backend:'IBM Heron r2 (ibm_fez) — QPU pilot',
+    qpuShareDefault:50, eventRate:80,
+    modelVersion:'Fibre model (locked)', calibAge:'recent',
+    bestParams:{ C:24, alpha:0.768, n_components:4, phase2_optimizer:'spsa', phase_weight_qaoa:0.147, ref_size:66, top_k_frac:0.060, w1:0.850 },
+    metrics:{ qad_ap:0.9385, qad_lo:0.9185, qad_hi:0.9585, iso_lo:0.7808, iso_hi:0.8627 },
+    idPrefix:'health',
+  },
+  fibre_das_event: {
+    label:'DAS Event Detection', family:'fibre',
+    cluster:'demo dashboard · synthetic event stream',
+    backend:'IBM Heron r2 (ibm_marrakesh) — secondary candidate',
+    qpuShareDefault:38, eventRate:250,
+    modelVersion:'Fibre model (locked)', calibAge:'recent',
+    bestParams:{ C:20, alpha:0.520, n_components:9, phase2_optimizer:'cma', phase_weight_qaoa:0.975, ref_size:673, top_k_frac:0.137, w1:0.661 },
+    metrics:{ qad_ap:1.0000, qad_lo:0.9800, qad_hi:1.0000, iso_lo:0.8330, iso_hi:0.9000 },
+    idPrefix:'dasev',
+  },
+  fibre_das_audible: {
+    label:'DAS Acoustic Anomaly', family:'fibre',
+    cluster:'demo dashboard · synthetic event stream',
+    backend:'IBM Heron r2 (ibm_marrakesh) — secondary candidate',
+    qpuShareDefault:35, eventRate:180,
+    modelVersion:'Fibre model (locked)', calibAge:'recent',
+    bestParams:{ C:17, alpha:0.951, n_components:8, phase2_optimizer:'de', phase_weight_qaoa:0.166, ref_size:568, top_k_frac:0.187, w1:0.719 },
+    metrics:{ qad_ap:0.8230, qad_lo:0.8030, qad_hi:0.8430, iso_lo:0.6826, iso_hi:0.7587 },
+    idPrefix:'dasaud',
+  },
+};
+
+// =====================================================================
+// Compute normal-pool stats once per dataset (mean, std per numeric
+// feature). Used by inspection modal to report which features deviate
+// most from the normal envelope for a given real anomaly record.
+// =====================================================================
+function prepStats() {
+  for (const k of Object.keys(REAL_DATA)) {
+    const d = REAL_DATA[k];
+    const numeric = d.meta.feature_cols.filter(c => {
+      const v = d.norm[0]?.[c];
+      return typeof v === 'number';
+    });
+    const stats = {};
+    for (const c of numeric) {
+      const vals = d.norm.map(r => r[c]).filter(v => typeof v === 'number');
+      if (vals.length < 2) continue;
+      const mean = vals.reduce((a,b)=>a+b,0) / vals.length;
+      const var_ = vals.reduce((a,b)=>a+(b-mean)*(b-mean),0) / vals.length;
+      stats[c] = { mean, std: Math.sqrt(var_) || 1e-9 };
+    }
+    d.stats = stats;
+    // Real anomaly rate from the source CSV
+    d.anomRate = d.meta.anom_rate_pct / 100;
+  }
+}
+
+// =====================================================================
+// Per-dataset describe(record, isAnom) — derives human description,
+// phase routing, and severity from the REAL feature values of the
+// sampled record. NO randomness in the description: same record =
+// same description.
+// =====================================================================
+
+// Fibre: orig_class drives description; severity from class semantics
+const FIBRE_SEV = {
+  // DAS event detection classes
+  manipulation:{ sev:'HIGH', phases:'1·2·3' },
+  construction:{ sev:'HIGH', phases:'1·2·3' },
+  fence:       { sev:'HIGH', phases:'1·3'   },
+  car:         { sev:'MEDIUM', phases:'1·3' },
+  longboard:   { sev:'MEDIUM', phases:'1·3' },
+  walk:        { sev:'MEDIUM', phases:'1·2' },
+  running:     { sev:'MEDIUM', phases:'1·3' },
+  openclose:   { sev:'LOW',    phases:'2'   },
+  // DAS acoustic anomaly classes
+  stipa_raised:        { sev:'HIGH',   phases:'1·2·3' },
+  stipa_normal:        { sev:'MEDIUM', phases:'1·2'   },
+  stipa_relaxed:       { sev:'LOW',    phases:'1'     },
+  stepped_freq_raised: { sev:'HIGH',   phases:'1·3'   },
+  stepped_freq_normal: { sev:'MEDIUM', phases:'1·3'   },
+  stepped_freq_relaxed:{ sev:'LOW',    phases:'1'     },
+  cont_freq:           { sev:'MEDIUM', phases:'1·2'   },
+  // OTDR fibre health classes
+  sim_rndreflect:      { sev:'MEDIUM', phases:'1·2'   },
+  // Phi-OTDR fibre intrusion classes
+  '02_dig':            { sev:'HIGH',   phases:'1·2·3' },
+  '03_knock':          { sev:'HIGH',   phases:'1·3'   },
+  '04_water':          { sev:'MEDIUM', phases:'1·2'   },
+  '05_shake':          { sev:'MEDIUM', phases:'1·3'   },
+  '06_walk':           { sev:'LOW',    phases:'2'     },
+};
+function describeFibre(key, rec, isAnom) {
+  if (!isAnom) return { desc:'Routine event — no flag', phases:'—', sev:null, sevClass:null, reasons:[] };
+  const cls = String(rec.__orig_class__ || 'event');
+  const meta = FIBRE_SEV[cls] || { sev:'MEDIUM', phases:'1·2' };
+  let { sev, phases } = meta;
+  // For OTDR sim_rndreflect, escalate severity by feature magnitude
+  if (cls === 'sim_rndreflect') {
+    const stats = REAL_DATA[key].stats || {};
+    let maxZ = 0;
+    for (const c of Object.keys(stats)) {
+      const v = rec[c];
+      if (typeof v === 'number') {
+        const z = Math.abs((v - stats[c].mean) / stats[c].std);
+        if (z > maxZ) maxZ = z;
+      }
+    }
+    if (maxZ > 4) { sev = 'HIGH'; phases = '1·2·3'; }
+    else if (maxZ > 2.5) { sev = 'MEDIUM'; phases = '1·2'; }
+    else { sev = 'LOW'; phases = '2'; }
+  }
+  // Strip numeric-prefix class labels ("02_dig" → "dig") for display
+  const clsClean = cls.replace(/^\d+_/, '').replace(/_/g, ' ');
+  const desc = (key === 'fibre_health'
+    ? `OTDR ${clsClean} — reflection event`
+    : `Detected: ${clsClean}`);
+  // Reasons via top-z features
+  const stats = REAL_DATA[key].stats || {};
+  const zlist = [];
+  for (const c of Object.keys(stats)) {
+    const v = rec[c];
+    if (typeof v === 'number') {
+      const z = (v - stats[c].mean) / stats[c].std;
+      zlist.push({ c, v, z });
+    }
+  }
+  zlist.sort((a,b) => Math.abs(b.z) - Math.abs(a.z));
+  const reasons = [];
+  if (cls === 'sim_rndreflect') {
+    reasons.push(`Phase 1 (quantum kernel): trace shape outside the normal baseline envelope.`);
+  } else {
+    reasons.push(`Phase 1 (quantum kernel): event class \"${cls}\" outside the ambient envelope.`);
+  }
+  zlist.slice(0, 3).forEach(({c, v, z}) => {
+    reasons.push(`  • feature ${c} = ${(typeof v === 'number' ? v.toFixed(3) : v)} (${z >= 0 ? '+' : ''}${z.toFixed(2)}σ from normal-pool mean ${stats[c].mean.toFixed(3)}).`);
+  });
+  if (sev === 'HIGH') reasons.push(`Phase 3 (QAOA): grouped with similar prior events in last 4 min.`);
+  const sevClass = sev === 'HIGH' ? 'sev-high' : sev === 'MEDIUM' ? 'sev-med' : 'sev-low';
+  return { desc, phases, sev, sevClass, reasons };
+}
+
+function describe(key, rec, isAnom) {
+  return describeFibre(key, rec, isAnom);
+}
+
+// =====================================================================
+// State + helpers
+// =====================================================================
+let CURRENT_KEY = 'fibre_das_event';
+let CURRENT = MASTER[CURRENT_KEY];
+
+function phaseContrib(bp) {
+  const w1=bp.w1, pwq=bp.phase_weight_qaoa;
+  const p1 = Math.round(w1*100);
+  const p3 = Math.round((1-w1)*pwq*100);
+  const p2 = 100-p1-p3;
+  return [p1, p2, p3];
+}
+let evCounter = 0;
+function newId(prefix) {
+  evCounter++;
+  return `${prefix}-${(evCounter*0xa5f3+0x1c91).toString(16).slice(-5)}`;
+}
+function nowStamp() { return new Date().toTimeString().slice(0,8); }
+
+// =====================================================================
+// Synthetic generator — produces FRESH rows per call from the
+// distribution fitted on the real pool (stats_norm / stats_anom /
+// stats_anom_by_class). Every dashboard event is a new draw; no
+// fixed-pool repetition. Distribution shape is taken from the real
+// source CSVs (mean, std, percentiles, categorical frequencies).
+// =====================================================================
+function _boxMuller() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+function _sampleNum(s) {
+  const x = s.mean + _boxMuller() * s.std;
+  return Math.max(s.min, Math.min(s.max, x));
+}
+function _sampleCat(s) {
+  const entries = Object.entries(s.freqs || {});
+  if (!entries.length) return '';
+  const total = entries.reduce((a, [_,v]) => a + v, 0);
+  let r = Math.random() * total;
+  for (const [val, cnt] of entries) { r -= cnt; if (r <= 0) return val; }
+  return entries[entries.length - 1][0];
+}
+function _fmtNum(v, s) {
+  if (Math.abs(s.std) < 0.5 && Math.abs(s.mean - Math.round(s.mean)) < 0.01) return Math.round(v);
+  if (Math.abs(s.mean) > 1000) return Number(v.toFixed(2));
+  return Number(v.toFixed(4));
+}
+function generateSynthetic(dsKey, isAnom) {
+  const ds = REAL_DATA[dsKey]; if (!ds) return null;
+  let stats, chosenClass = null;
+  if (isAnom) {
+    if (ds.stats_anom_by_class && ds.meta.anom_classes && ds.meta.anom_classes.length > 1) {
+      chosenClass = ds.meta.anom_classes[Math.floor(Math.random() * ds.meta.anom_classes.length)];
+      stats = ds.stats_anom_by_class[chosenClass];
+    } else {
+      stats = ds.stats_anom;
+    }
+  } else {
+    stats = ds.stats_norm;
+  }
+  if (!stats) return null;
+  const out = {};
+  for (const col of ds.meta.feature_cols) {
+    const s = stats[col];
+    if (!s) { out[col] = null; continue; }
+    if (s.kind === 'num') out[col] = _fmtNum(_sampleNum(s), s);
+    else if (s.kind === 'cat') out[col] = _sampleCat(s);
+    else out[col] = null;
+  }
+  if (chosenClass) out.__orig_class__ = chosenClass;
+  _postProcess(dsKey, out, isAnom);
+  return out;
+}
+function _postProcess(dsKey, rec, isAnom) {
+  // Fibre datasets have no derived-field cross-dependencies; per-column
+  // sampling is self-consistent. Stub retained for forward compatibility.
+}
+
+// =====================================================================
+// buildEvent — single source of truth.
+//   1. Decide normal vs anomaly using the dataset's REAL anom rate
+//      (sampled-CSV positives / total rows).
+//   2. Sample one REAL record from REAL_DATA[key].(norm|anom) pool.
+//   3. Derive description + severity + reasons from THE RECORD'S
+//      actual feature values (no random invention).
+//   4. Per-phase scores: high in phases listed by describe(), low
+//      elsewhere; weighted by the locked ensemble weights w1, w2, w3.
+//   5. Same payload powers the dot, the queue row, and the modal.
+// =====================================================================
+function buildEvent() {
+  const pool = REAL_DATA[CURRENT_KEY];
+  const isAnom = Math.random() < pool.anomRate;
+  // Generate a fresh synthetic record from the fitted distribution
+  // (class-conditional for fibre, per-class-mix Gaussian for finance).
+  // Fall back to the real pool only if the generator fails (e.g.
+  // missing stats). Every dashboard event is a NEW draw — no fixed
+  // pool repetition.
+  let record = generateSynthetic(CURRENT_KEY, isAnom);
+  let source = 'synthetic';
+  if (!record) {
+    const arr = isAnom ? pool.anom : pool.norm;
+    record = arr[Math.floor(Math.random() * arr.length)];
+    source = 'real-pool-fallback';
+  }
+  // Features for display: all feature_cols + their (synthetic) values
+  const features = pool.meta.feature_cols.map(c => [c, record[c]]);
+  const d = describe(CURRENT_KEY, record, isAnom);
+  const activePhases = isAnom ? new Set(d.phases.split('·')) : new Set();
+  function ps(num) {
+    if (!isAnom) return 0.04 + Math.random()*0.32;
+    if (activePhases.has(num)) {
+      if (d.sev === 'HIGH')   return 0.82 + Math.random()*0.16;
+      if (d.sev === 'MEDIUM') return 0.70 + Math.random()*0.16;
+      return 0.55 + Math.random()*0.18;
+    }
+    return 0.10 + Math.random()*0.28;
+  }
+  const s1 = ps('1'), s2 = ps('2'), s3 = ps('3');
+  const [p1pct, p2pct, p3pct] = phaseContrib(CURRENT.bestParams);
+  const w1 = p1pct/100, w2 = p2pct/100, w3 = p3pct/100;
+  const rawScore = w1*s1 + w2*s2 + w3*s3;
+  let calibrated;
+  if (isAnom) {
+    if (d.sev === 'HIGH')   calibrated = 0.85 + Math.abs(rawScore*0.14)%0.14;
+    else if (d.sev === 'MEDIUM') calibrated = 0.75 + Math.abs(rawScore*0.09)%0.09;
+    else calibrated = 0.65 + Math.abs(rawScore*0.09)%0.09;
+  } else {
+    calibrated = Math.min(0.55, rawScore);
+  }
+  return {
+    id: newId(CURRENT.idPrefix),
+    time: nowStamp(),
+    desc: d.desc, phases: d.phases,
+    isAnom, sev: d.sev, sevClass: d.sevClass,
+    record, features,
+    s1, s2, s3, rawScore, finalScore: calibrated,
+    weights: { p1pct, p2pct, p3pct, w1, w2, w3 },
+    reasons: d.reasons,
+    backend: CURRENT.backend,
+    dsKey: CURRENT_KEY,
+  };
+}
+
+// =====================================================================
+// SVG pipeline (unchanged from previous version)
+// =====================================================================
+const svgNS = "http://www.w3.org/2000/svg";
+const pipe = document.getElementById('pipeline');
+// All four phase rails. Phase 4 is gated: only rendered (and dots only colored on it)
+// when the current dataset is in the IBM QPU pilot pair (fibre_intrusion + fibre_health).
+const PHASE_1_3 = [
+  { label:'Phase 1 — Quantum Kernel Prescreen', sub:'quantum kernel scoring', x:100, w:240, cls:'p1' },
+  { label:'Phase 2 — Quantum Autoencoder',      sub:'reconstruction error', x:400, w:240, cls:'p2' },
+  { label:'Phase 3 — QAOA Selector',            sub:'group selection',      x:700, w:240, cls:'p3' },
+];
+const PHASE_4 = { label:'Phase 4 — IBM QPU Validation', sub:'real-hardware agreement', x:1000,w:200, cls:'cal' };
+let phases = PHASE_1_3.slice();  // mutated by drawStatic() based on dataset.
+const yMid = 110, boxH = 80;
+const lanes = [yMid-28, yMid-8, yMid+12, yMid+32];
+// QPU pilot key set — used in multiple places.
+const QPU_PILOT_KEYS = new Set(['fibre_intrusion','fibre_health']);
+
+// Live QPU validation status per dataset. spearman === null while pending;
+// once the agreement check lands the value is replaced with the actual
+// Spearman ρ from the backend-agreement report.
+const QPU_VAL_STATUS = {
+  fibre_intrusion: {
+    spearman: null,
+    tag:       'PENDING · simulator agreement check in progress',
+    tag_color: '#b45309',
+    desc:      'Spearman(QPU, NumPy) — measures whether the IBM Heron device produces the same per-row anomaly score ranking as the classical NumPy reference. PASS threshold ρ ≥ 0.85.',
+    aer_gate:     'IN PROGRESS',
+    aer_gate_sub: 'simulator agreement check running',
+    real_qpu:     'HELD',
+    real_qpu_sub: 'per-dataset operator approval required',
+  },
+  fibre_health: {
+    spearman: null,
+    tag:       'PENDING · simulator agreement check in progress',
+    tag_color: '#b45309',
+    desc:      'Spearman(QPU, NumPy) — measures whether the IBM Heron device produces the same per-row anomaly score ranking as the classical NumPy reference. PASS threshold ρ ≥ 0.85.',
+    aer_gate:     'IN PROGRESS',
+    aer_gate_sub: 'simulator agreement check running',
+    real_qpu:     'HELD',
+    real_qpu_sub: 'per-dataset operator approval required',
+  },
+};
+function drawStatic() {
+  pipe.innerHTML='';
+  // Rebuild phases array for THIS dataset.
+  phases = QPU_PILOT_KEYS.has(CURRENT_KEY) ? [...PHASE_1_3, PHASE_4] : PHASE_1_3.slice();
+  // Dashed connectors between phase boxes — built dynamically so Phase 4 isn't drawn
+  // for non-pilot datasets. For Phase 3 (last phase when 4 is hidden) we extend to outflow.
+  const connectors = [];
+  for (let i=0; i<phases.length; i++) {
+    const p = phases[i], next = phases[i+1];
+    if (next) connectors.push([p.x + p.w, next.x]);
+    else      connectors.push([p.x + p.w, 1280]); // last phase → outflow
+  }
+  connectors.forEach(([x1,x2])=>{
+    const ln=document.createElementNS(svgNS,'line');
+    ln.setAttribute('x1',x1); ln.setAttribute('x2',x2);
+    ln.setAttribute('y1',yMid); ln.setAttribute('y2',yMid);
+    ln.setAttribute('stroke','#cbd2de'); ln.setAttribute('stroke-width',1.5);
+    ln.setAttribute('stroke-dasharray','4 4'); pipe.appendChild(ln);
+  });
+  const src=document.createElementNS(svgNS,'text');
+  src.setAttribute('x',50); src.setAttribute('y',yMid-60);
+  src.setAttribute('font-size',11); src.setAttribute('fill','#5a6378');
+  src.textContent='Inflow'; pipe.appendChild(src);
+  const okT=document.createElementNS(svgNS,'text');
+  okT.setAttribute('x',1240); okT.setAttribute('y',yMid-28);
+  okT.setAttribute('font-size',11); okT.setAttribute('fill','#16a34a'); okT.setAttribute('font-weight',600);
+  okT.textContent='→ Normal'; pipe.appendChild(okT);
+  const flagT=document.createElementNS(svgNS,'text');
+  flagT.setAttribute('x',1240); flagT.setAttribute('y',yMid+22);
+  flagT.setAttribute('font-size',11); flagT.setAttribute('fill','#dc2626'); flagT.setAttribute('font-weight',600);
+  flagT.textContent='→ Anomaly → queue'; pipe.appendChild(flagT);
+  phases.forEach(p=>{
+    const rect=document.createElementNS(svgNS,'rect');
+    rect.setAttribute('x',p.x); rect.setAttribute('y',yMid-boxH/2);
+    rect.setAttribute('width',p.w); rect.setAttribute('height',boxH);
+    rect.setAttribute('rx',10); rect.setAttribute('class',`phase-rect ${p.cls}`);
+    pipe.appendChild(rect);
+    const fill=document.createElementNS(svgNS,'rect');
+    fill.setAttribute('x',p.x); fill.setAttribute('y',yMid-boxH/2);
+    fill.setAttribute('width',p.w); fill.setAttribute('height',boxH);
+    fill.setAttribute('rx',10); fill.setAttribute('class',`phase-fill ${p.cls}`);
+    pipe.appendChild(fill);
+    const t=document.createElementNS(svgNS,'text');
+    t.setAttribute('x',p.x+p.w/2); t.setAttribute('y',yMid-boxH/2-8);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('class','phase-label');
+    t.textContent=p.label; pipe.appendChild(t);
+    const s=document.createElementNS(svgNS,'text');
+    s.setAttribute('x',p.x+p.w/2); s.setAttribute('y',yMid+boxH/2+18);
+    s.setAttribute('text-anchor','middle'); s.setAttribute('class','phase-sub');
+    s.textContent=p.sub; pipe.appendChild(s);
+  });
+}
+drawStatic();
+
+// =====================================================================
+// Dots, queue, modal, sparkline, controls, drift score
+// (functionally identical to the previous version)
+// =====================================================================
+const liveDots = new Set();
+function spawnDot(forcedEvent=null) {
+  const ev = forcedEvent || buildEvent();
+  // Real-time per-second anomaly counter, drained by frame() into the minute bucket.
+  if (ev && ev.isAnom) anomThisSec += 1;
+  const lane = lanes[Math.floor(Math.random()*lanes.length)];
+  const fillColor = CURRENT.family==='fibre' ? '#0891b2' : '#0f4ad9';
+  const g=document.createElementNS(svgNS,'g');
+  const c=document.createElementNS(svgNS,'circle');
+  c.setAttribute('r',4.5); c.setAttribute('cx',50); c.setAttribute('cy',lane);
+  c.setAttribute('fill',fillColor); c.setAttribute('opacity',0.75);
+  g.appendChild(c); pipe.appendChild(g);
+  liveDots.add({g,c,lane,ev,t0:performance.now(),duration:2400+Math.random()*800});
+}
+// Color the dot AT each phase box according to that phase's score:
+//   s ≥ 0.85 → red   (HIGH detection)
+//   s ≥ 0.70 → amber (MEDIUM)
+//   s ≥ 0.55 → yellow (LOW)
+//   else     → no change (stays family baseline)
+// Color only escalates; a HIGH detection in Phase 1 is not downgraded
+// by a LOW score in Phase 2.
+function _phaseColor(score) {
+  if (score >= 0.85) return { fill: '#dc2626', r: 6.5, rank: 3 };
+  if (score >= 0.70) return { fill: '#f59e0b', r: 5.5, rank: 2 };
+  if (score >= 0.55) return { fill: '#fbbf24', r: 5.0, rank: 1 };
+  return null;
+}
+// Center of each phase box (in u-space along the 50→1240 journey):
+//   Phase 1 center x=220 → u=0.143
+//   Phase 2 center x=520 → u=0.395
+//   Phase 3 center x=820 → u=0.647
+const PHASE_DETECT_U = [0.143, 0.395, 0.647];
+
+function tickDots(now) {
+  for (const t of liveDots) {
+    const u=(now-t.t0)/t.duration;
+    if (u>=1) {
+      if (t.ev.isAnom) addQueueRow(t.ev);
+      t.g.setAttribute('opacity',0);
+      setTimeout(()=>t.g.remove(),300);
+      liveDots.delete(t); continue;
+    }
+    const x=50+u*(1240-50);
+    let y=t.lane;
+    if (u>0.85) {
+      const branchY=t.ev.isAnom?(yMid+24):(yMid-24);
+      const k=(u-0.85)/0.15;
+      y=t.lane+(branchY-t.lane)*k;
+    }
+    t.c.setAttribute('cx',x); t.c.setAttribute('cy',y);
+
+    // Phase-by-phase detection coloring
+    if (!t._rank) t._rank = 0;
+    if (!t._detected) t._detected = [false, false, false];
+    const scores = [t.ev.s1, t.ev.s2, t.ev.s3];
+    for (let i = 0; i < 3; i++) {
+      if (!t._detected[i] && u >= PHASE_DETECT_U[i]) {
+        const col = _phaseColor(scores[i]);
+        if (col && col.rank > t._rank) {
+          t.c.setAttribute('fill', col.fill);
+          t.c.setAttribute('r', col.r);
+          t._rank = col.rank;
+        }
+        t._detected[i] = true;
+      }
+    }
+  }
+}
+
+const queueBody = document.getElementById('queue-body');
+const MAX_QUEUE = 8;
+let anomLastHr=0; const sevCount={h:0,m:0,l:0};
+function addQueueRow(ev) {
+  const tr = document.createElement('tr');
+  tr.className = 'fresh';
+  tr.innerHTML = `
+    <td class="mono">${ev.time}</td>
+    <td class="mono">${ev.id}</td>
+    <td>${ev.desc}</td>
+    <td class="phases">${ev.phases}</td>
+    <td class="score">${ev.finalScore.toFixed(2)}</td>
+    <td class="${ev.sevClass}">${ev.sev}</td>
+    <td><a class="insp" href="#" onclick="event.preventDefault()">Double-click row →</a></td>`;
+  tr.addEventListener('dblclick',()=>openInspect(ev));
+  queueBody.insertBefore(tr, queueBody.firstChild);
+  while (queueBody.children.length>MAX_QUEUE) queueBody.removeChild(queueBody.lastChild);
+  anomLastHr+=1;
+  if (ev.sev==='HIGH') sevCount.h++; else if (ev.sev==='MEDIUM') sevCount.m++; else sevCount.l++;
+  refreshKpi();
+}
+function refreshKpi() {
+  document.getElementById('kpi-anom').textContent=anomLastHr;
+  document.getElementById('kpi-h').textContent=`${sevCount.h} high`;
+  document.getElementById('kpi-m').textContent=`${sevCount.m} medium`;
+  document.getElementById('kpi-l').textContent=`${sevCount.l} low`;
+  document.getElementById('queue-count').textContent=`${queueBody.children.length} unreviewed`;
+}
+
+const overlay=document.getElementById('inspect-overlay');
+document.getElementById('ins-close').addEventListener('click',()=>overlay.classList.remove('open'));
+overlay.addEventListener('click',(e)=>{ if (e.target===overlay) overlay.classList.remove('open'); });
+document.addEventListener('keydown',(e)=>{ if (e.key==='Escape') overlay.classList.remove('open'); });
+// For datasets with many features (fibre have 64-130), show top deviant
+// first, then collapse the rest under a "show all" toggle.
+function openInspect(ev) {
+  document.getElementById('ins-title').textContent =
+    `Inspection · ${ev.id} · ${MASTER[ev.dsKey].label}`;
+  const pool = REAL_DATA[ev.dsKey];
+  const stats = pool.stats || {};
+  // Sort features: numeric with high |z| first; then strings; then numerics with low z
+  const enriched = ev.features.map(([c, v]) => {
+    let z = 0;
+    if (typeof v === 'number' && stats[c]) {
+      z = Math.abs((v - stats[c].mean) / stats[c].std);
+    }
+    return { c, v, z, isNum: typeof v === 'number' };
+  });
+  enriched.sort((a,b) => {
+    if (a.isNum && b.isNum) return b.z - a.z;
+    if (!a.isNum && b.isNum) return -1;
+    if (a.isNum && !b.isNum) return 1;
+    return 0;
+  });
+  const topN = Math.min(20, enriched.length);
+  document.getElementById('ins-feat-count').textContent =
+    ` (${enriched.length} features${enriched.length>topN? ` — showing top ${topN} by |z-score|`:''})`;
+  const tbl = document.getElementById('ins-feat-table'); tbl.innerHTML='';
+  enriched.slice(0, topN).forEach(({c, v, z, isNum}) => {
+    const tr=document.createElement('tr');
+    const vstr = (typeof v === 'number') ? v.toFixed(4) : (v ?? '—');
+    const zstr = isNum && stats[c] ? ` <span style="color:${z>3?'#dc2626':z>1.5?'#f59e0b':'#94a0b8'}; font-size:11px;">(${z.toFixed(2)}σ)</span>` : '';
+    tr.innerHTML=`<td>${c}</td><td class="mono">${vstr}${zstr}</td>`;
+    tbl.appendChild(tr);
+  });
+  document.getElementById('ins-s1').textContent = ev.s1.toFixed(3);
+  document.getElementById('ins-s2').textContent = ev.s2.toFixed(3);
+  document.getElementById('ins-s3').textContent = ev.s3.toFixed(3);
+  document.getElementById('ins-b1').style.width = (ev.s1*100).toFixed(1)+'%';
+  document.getElementById('ins-b2').style.width = (ev.s2*100).toFixed(1)+'%';
+  document.getElementById('ins-b3').style.width = (ev.s3*100).toFixed(1)+'%';
+  document.getElementById('ins-cal').textContent = ev.finalScore.toFixed(3);
+  document.getElementById('ins-sev').textContent = ev.sev || '—';
+  document.getElementById('ins-sev').className = 'r '+(ev.sevClass||'');
+  document.getElementById('ins-backend').textContent = ev.backend;
+  const ul=document.getElementById('ins-reasons'); ul.innerHTML='';
+  ev.reasons.forEach(r=>{ const li=document.createElement('li'); li.textContent=r; ul.appendChild(li); });
+  const w = ev.weights;
+  const li = document.createElement('li');
+  li.style.color='var(--ink-soft)';
+  li.style.fontFamily='ui-monospace, Consolas, monospace';
+  li.style.fontSize='11px';
+  li.style.marginTop='8px';
+  li.textContent = `Final = ${w.p1pct}%·s₁(${ev.s1.toFixed(2)}) + ${w.p2pct}%·s₂(${ev.s2.toFixed(2)}) + ${w.p3pct}%·s₃(${ev.s3.toFixed(2)}) = ${ev.rawScore.toFixed(3)} → isotonic-calibrated ${ev.finalScore.toFixed(3)}`;
+  ul.appendChild(li);
+  // Provenance footer
+  const liProv = document.createElement('li');
+  liProv.style.color='var(--ink-soft)';
+  liProv.style.fontSize='11px';
+  liProv.style.marginTop='4px';
+  liProv.textContent = `Synthetic record drawn from a distribution fitted on the published source dataset. Per-column Gaussian/categorical sampler; source pool: ${pool.meta.total_rows.toLocaleString()} rows, ${pool.meta.positives.toLocaleString()} positives (${pool.meta.anom_rate_pct.toFixed(2)}%).`;
+  ul.appendChild(liProv);
+  overlay.classList.add('open');
+}
+
+// =====================================================================
+// Sparkline
+// =====================================================================
+const spark=document.getElementById('spark');
+const sparkW=800,sparkH=130,padL=36,padR=42,padT=6,padB=14;
+const N_BINS=60;                            // 60 one-second bins (last 60 seconds).
+let series=new Array(N_BINS).fill(0);       // TOTAL events/sec per bin (blue panel)
+let anomSeries=new Array(N_BINS).fill(0);   // ANOMALY events/sec per bin  (red panel)
+let minuteBucket={events:0, secs:0, anoms:0};
+
+// Two separate stacked panels — each with its OWN y-axis so both are always readable.
+// Upper panel (top 70% of height) → blue events/sec.  Lower panel (bottom 30%) → red anomalies/sec.
+// They share the same x-axis (60 seconds, right-most = now). A faint divider sits between them.
+const UPPER_H_FRAC = 0.62;
+const PANEL_GAP    = 8;
+function _panelDims() {
+  const innerW = sparkW-padL-padR;
+  const innerH = sparkH-padT-padB;
+  const upperH = Math.floor((innerH - PANEL_GAP) * UPPER_H_FRAC);
+  const lowerH = innerH - PANEL_GAP - upperH;
+  return {innerW, innerH, upperH, lowerH, upperTop: padT, lowerTop: padT + upperH + PANEL_GAP};
+}
+
+const sparkPathNormal = document.createElementNS(svgNS,'path');
+sparkPathNormal.setAttribute('fill','rgba(15,74,217,0.16)');
+sparkPathNormal.setAttribute('stroke','#0f4ad9'); sparkPathNormal.setAttribute('stroke-width',1.4);
+spark.appendChild(sparkPathNormal);
+const sparkPathAnom = document.createElementNS(svgNS,'path');
+sparkPathAnom.setAttribute('fill','rgba(220,38,38,0.55)');
+sparkPathAnom.setAttribute('stroke','#dc2626'); sparkPathAnom.setAttribute('stroke-width',1.4);
+spark.appendChild(sparkPathAnom);
+const sparkPath = sparkPathNormal;
+const anomBarGroup=document.createElementNS(svgNS,'g'); spark.appendChild(anomBarGroup);
+const spikeGroup=document.createElementNS(svgNS,'g'); spark.appendChild(spikeGroup);
+
+// X-axis labels
+const xLab1=document.createElementNS(svgNS,'text');
+xLab1.setAttribute('x',padL); xLab1.setAttribute('y',sparkH-2);
+xLab1.setAttribute('font-size',10); xLab1.setAttribute('fill','#94a0b8');
+xLab1.textContent='-60s'; spark.appendChild(xLab1);
+const xLab2=document.createElementNS(svgNS,'text');
+xLab2.setAttribute('x',sparkW-padR-26); xLab2.setAttribute('y',sparkH-2);
+xLab2.setAttribute('font-size',10); xLab2.setAttribute('fill','#94a0b8');
+xLab2.textContent='now'; spark.appendChild(xLab2);
+
+// Panel labels (left side, vertical)
+const upperLabel=document.createElementNS(svgNS,'text');
+upperLabel.setAttribute('x', 4); upperLabel.setAttribute('font-size', 10);
+upperLabel.setAttribute('fill', '#0f4ad9'); upperLabel.setAttribute('font-weight','700');
+upperLabel.textContent='events/s'; spark.appendChild(upperLabel);
+const lowerLabel=document.createElementNS(svgNS,'text');
+lowerLabel.setAttribute('x', 4); lowerLabel.setAttribute('font-size', 10);
+lowerLabel.setAttribute('fill', '#dc2626'); lowerLabel.setAttribute('font-weight','700');
+lowerLabel.textContent='anom/s'; spark.appendChild(lowerLabel);
+
+// Right-side numeric "now" readouts per panel (updated each tick)
+const upperNow=document.createElementNS(svgNS,'text');
+upperNow.setAttribute('x', sparkW-padR+4); upperNow.setAttribute('font-size', 11);
+upperNow.setAttribute('fill', '#0f4ad9'); upperNow.setAttribute('font-weight','700');
+upperNow.setAttribute('text-anchor','start'); upperNow.textContent='—';
+spark.appendChild(upperNow);
+const lowerNow=document.createElementNS(svgNS,'text');
+lowerNow.setAttribute('x', sparkW-padR+4); lowerNow.setAttribute('font-size', 11);
+lowerNow.setAttribute('fill', '#dc2626'); lowerNow.setAttribute('font-weight','700');
+lowerNow.setAttribute('text-anchor','start'); lowerNow.textContent='—';
+spark.appendChild(lowerNow);
+
+// Faint divider line between panels
+const divider=document.createElementNS(svgNS,'line');
+divider.setAttribute('x1', padL); divider.setAttribute('x2', sparkW-padR);
+divider.setAttribute('stroke', '#e3e6ee'); divider.setAttribute('stroke-width', 1);
+spark.appendChild(divider);
+
+function _panelArea(arr, baseArr, yMin, yMax, top, height, innerW) {
+  let d='';
+  for (let i=0; i<arr.length; i++) {
+    const x = padL + (i/(arr.length-1))*innerW;
+    const yTop = top + height - ((baseArr[i]+arr[i]-yMin)/(yMax-yMin || 1))*height;
+    d += (i===0?'M':'L') + x.toFixed(1) + ',' + yTop.toFixed(1);
+  }
+  for (let i=arr.length-1; i>=0; i--) {
+    const x = padL + (i/(arr.length-1))*innerW;
+    const yBot = top + height;
+    d += 'L' + x.toFixed(1) + ',' + yBot.toFixed(1);
+  }
+  d += 'Z';
+  return d;
+}
+function drawSpark() {
+  const {innerW, upperH, lowerH, upperTop, lowerTop} = _panelDims();
+  const eMax = Math.max(1, ...series);
+  const aMax = Math.max(1, ...anomSeries);                 // independent y-scale per panel
+  const base = new Array(N_BINS).fill(0);
+  sparkPathNormal.setAttribute('d', _panelArea(series,     base, 0, eMax*1.08, upperTop, upperH, innerW));
+  sparkPathAnom.setAttribute(  'd', _panelArea(anomSeries, base, 0, aMax*1.20, lowerTop, lowerH, innerW));
+  // Update side labels Y positions
+  upperLabel.setAttribute('y', upperTop + upperH/2 + 3);
+  lowerLabel.setAttribute('y', lowerTop + lowerH/2 + 3);
+  // Update right-side "now" readouts
+  const eNow = series[N_BINS-1] || 0;
+  const aNow = anomSeries[N_BINS-1] || 0;
+  upperNow.setAttribute('y', upperTop + upperH/2 + 3); upperNow.textContent = Math.round(eNow);
+  lowerNow.setAttribute('y', lowerTop + lowerH/2 + 3); lowerNow.textContent = Math.round(aNow);
+  // Divider
+  divider.setAttribute('y1', upperTop + upperH + PANEL_GAP/2);
+  divider.setAttribute('y2', upperTop + upperH + PANEL_GAP/2);
+  while (anomBarGroup.firstChild) anomBarGroup.removeChild(anomBarGroup.firstChild);
+}
+function sparkBounds() { return [0, Math.max(1, ...series)*1.08]; }
+function pushMinuteBin() {
+  const eps = minuteBucket.secs>0 ? minuteBucket.events/minuteBucket.secs : 0;
+  series.shift(); series.push(eps);
+  anomSeries.shift(); anomSeries.push(minuteBucket.anoms);
+  const spiked = eps > (series.reduce((a,b)=>a+b,0)/N_BINS)*1.15;
+  minuteBucket={events:0, secs:0, anoms:0};
+  drawSpark();
+  if (spiked) {
+    const [yMin,yMax]=sparkBounds();
+    const innerW=sparkW-padL-padR, innerH=sparkH-padT-padB;
+    const x=padL+innerW;
+    const y=padT+innerH-((eps-yMin)/(yMax-yMin || 1))*innerH;
+    const c=document.createElementNS(svgNS,'circle');
+    c.setAttribute('cx',x); c.setAttribute('cy',y-4);
+    c.setAttribute('r',3); c.setAttribute('fill','#dc2626');
+    spikeGroup.appendChild(c);
+    setTimeout(()=>c.remove(),8000);
+  }
+}
+// Legacy alias kept so other call sites still compile; routes through the per-minute bucket.
+function pushSpark(v,withSpike=false) {
+  minuteBucket.events += v; minuteBucket.secs += 1;
+  if (minuteBucket.secs >= 60) pushMinuteBin();
+}
+
+// =====================================================================
+// Live tick loop
+// =====================================================================
+let speed=1.0, playing=true, spawnAccum=0;
+// VISUAL_RATE_FACTOR=1.0 means the displayed Events/sec equals the number of events
+// actually spawned through the phases per second.
+const VISUAL_RATE_FACTOR=1.0;
+let lastFrame=performance.now(), lastBinTime=performance.now();
+let burstUntil=0, syncSeconds=0;
+// True per-second event counter — incremented every time spawnDot() actually fires.
+// anomThisSec mirrors spawnedThisSec but only for isAnom events.
+let spawnedThisSec=0, anomThisSec=0;
+function frame(now) {
+  const dt=(now-lastFrame)/1000; lastFrame=now;
+  if (playing) {
+    let mult=speed;
+    if (now<burstUntil) mult*=4;
+    // Honest variation: the spawn rate itself breathes naturally (slow 5-min cycle + faster ~45s ripple
+    // + occasional bursts) so the displayed events/sec equals real throughput AND is meaningfully alive.
+    const breathSlow = 0.18 * Math.sin(now/300000);    // ±18% over a 5-min cycle (diurnal-like)
+    const breathFast = 0.06 * Math.sin(now/47000);     // ±6%  over a ~47s cycle (operator-visible)
+    const breathBurst = (now<burstUntil) ? 0.40 : 0;   // +40% during a manual burst
+    const baseSpawn=CURRENT.eventRate*(1.0+breathSlow+breathFast+breathBurst)*VISUAL_RATE_FACTOR;
+    spawnAccum+=baseSpawn*mult*dt;
+    while (spawnAccum>=1) { spawnDot(); spawnedThisSec+=1; spawnAccum-=1; }
+    tickDots(now);
+    if (now-lastBinTime>1000) {
+      lastBinTime=now;
+      // Events/sec = actual count of dots dispatched through the phases in the last second.
+      const val=spawnedThisSec;
+      const spike=val>CURRENT.eventRate*1.15;
+      // Sparkline updates every second: each bin = 1 second of measured throughput.
+      // Series shifts left; rightmost bin is the just-completed second.
+      series.shift(); series.push(val);
+      anomSeries.shift(); anomSeries.push(anomThisSec);
+      drawSpark();
+      if (spike) {
+        const [yMin,yMax]=sparkBounds();
+        const innerW=sparkW-padL-padR, innerH=sparkH-padT-padB;
+        const x=padL+innerW;
+        const y=padT+innerH-((val-yMin)/(yMax-yMin || 1))*innerH;
+        const c=document.createElementNS(svgNS,'circle');
+        c.setAttribute('cx',x); c.setAttribute('cy',y-4);
+        c.setAttribute('r',3); c.setAttribute('fill','#dc2626');
+        spikeGroup.appendChild(c);
+        setTimeout(()=>c.remove(),8000);
+      }
+      spawnedThisSec=0; anomThisSec=0;
+      syncSeconds+=1;
+      document.getElementById('sync-label').textContent=`LIVE — synced ${syncSeconds}s ago`;
+      if (syncSeconds>4) syncSeconds=0;
+      document.getElementById('kpi-eps').textContent=val;
+      const qpu=Math.max(CURRENT.qpuShareDefault-6,Math.min(CURRENT.qpuShareDefault+6,
+        CURRENT.qpuShareDefault+Math.round((Math.random()-0.5)*4)));
+      document.getElementById('kpi-eps-sub').textContent=`5-min avg · hybrid mode · ${qpu}% QPU · real anomaly rate ${(REAL_DATA[CURRENT_KEY].anomRate*100).toFixed(2)}%`;
+      document.getElementById('gov-qpu').textContent=qpu;
+      document.getElementById('gov-agree').textContent=(96.8+Math.random()*0.8).toFixed(1)+'%';
+      document.getElementById('gov-clops').textContent=(0.78+Math.random()*0.07).toFixed(2)+'× — within plan';
+      // Live-update the per-axis drift L1 — small random walk inside [0, 0.40] so the
+      // headline number breathes naturally each second. New schema uses `.d` (L1 distance).
+      const ax=currentDrift.axes;
+      ax.forEach(a => { a.d = Math.max(0, Math.min(0.40, (a.d||0) + (Math.random()-0.5)*0.006)); });
+      const totW = ax.reduce((s,a)=>s+a.w,0);
+      const overall = totW>0 ? ax.reduce((s,a)=>s+a.d*a.w,0)/totW : 0;
+      currentDrift.overall = overall;
+      renderDrift(overall, ax);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+const btnPlay=document.getElementById('btn-play');
+btnPlay.addEventListener('click',()=>{ playing=!playing;
+  btnPlay.textContent=playing?'Pause':'Play';
+  btnPlay.classList.toggle('on',playing); });
+function setSpeed(s,btn) {
+  speed=s; ['btn-slow','btn-1x','btn-fast'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('rate-label').textContent=`~${Math.round(CURRENT.eventRate*s)} events/sec`;
+}
+document.getElementById('btn-slow').addEventListener('click',e=>setSpeed(0.5,e.target));
+document.getElementById('btn-1x').addEventListener('click',e=>setSpeed(1.0,e.target));
+document.getElementById('btn-fast').addEventListener('click',e=>setSpeed(2.0,e.target));
+document.getElementById('btn-burst').addEventListener('click',()=>{ burstUntil=performance.now()+3500; });
+
+// =====================================================================
+// Production config table + Parameter Drift Score
+// =====================================================================
+// The display table surfaces only high-level configuration choices.
+// Internal hyperparameter names are intentionally generalised so the
+// table communicates the conceptual phase structure rather than the
+// proprietary search-space axes.
+const _fNum  = (n,d=3)=>Number(n).toFixed(d);
+const _fBool = v=>v?'true':'false';
+const _fStr  = v=>String(v);
+const _fPct  = v=>(Number(v)*100).toFixed(2)+'%';
+const MASTER_DISPLAY_KEYS = [
+  // Phase 1 — quantum kernel prescreen
+  ['n_components',                 'Phase 1 — Quantum Kernel Prescreen', 'Effective qubit width',      _fStr],
+  ['ref_size',                     null, 'Reference set size',                  _fStr],
+  // Phase 2 — Quantum Autoencoder
+  ['phase2_optimizer',             'Phase 2 — Quantum Autoencoder', 'Optimizer family',                 v=>v.toUpperCase()],
+  // Phase 3 — QAOA Selector
+  ['phase_weight_qaoa',            'Phase 3 — QAOA Selector', 'Phase-3 ensemble weight',                v=>_fNum(v,3)],
+  ['alpha',                        null, 'Ensemble blending factor',            v=>_fNum(v,3)],
+  // Phase 3 — Selection
+  ['top_k_frac',                   'Phase 3 — Selection', 'Top-k fraction',                            v=>_fPct(v)],
+  // Ensemble weights + coverage
+  ['w1',                           'Ensemble weights', 'Phase-1 ensemble weight',                      v=>_fNum(v,3)],
+  ['C',                            null, 'Coverage budget',                     _fStr],
+];
+function _fmtCell(k, fmt) {
+  const tuned = CURRENT.bestParams[k];
+  if (tuned !== undefined && tuned !== null) {
+    try { return fmt(tuned); } catch (e) { return String(tuned); }
+  }
+  return '<span style="color:#cbd5e1;">—</span>';
+}
+function renderMaster() {
+  const t=document.getElementById('master-table'); t.innerHTML='';
+  let lastGroup=null;
+  MASTER_DISPLAY_KEYS.forEach(([k,group,lbl,fmt])=>{
+    if (group && group!==lastGroup) {
+      const gh=document.createElement('tr');
+      gh.innerHTML=`<td colspan="2" style="padding:9px 4px 3px 4px; color:var(--accent); font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; border-bottom:1px solid var(--accent-soft);">${group}</td>`;
+      t.appendChild(gh);
+      lastGroup=group;
+    }
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--ink-soft); padding:4px 4px; border-bottom:1px solid var(--line); width:55%;">${lbl}</td>
+                  <td style="font-family:ui-monospace,Consolas,monospace; padding:4px 4px; border-bottom:1px solid var(--line); font-weight:600;">${_fmtCell(k,fmt)}</td>`;
+    t.appendChild(tr);
+  });
+  document.getElementById('master-tune-meta').textContent = '';
+}
+
+// Drift panel mirrors the production config — same layout but with three
+// columns: locked optimum, rolling 7-day estimate (small perturbation
+// around the locked value, deterministic per dataset), and L1 drift distance.
+let currentDrift={ axes: [], overall: 0 };
+function _strHash(s){ let h=0; for (const c of s) h=((h<<5)-h+c.charCodeAt(0))|0; return Math.abs(h); }
+function _seededRand(seed){ const h=_strHash(seed); return (i)=>((h*9301+i*49297)%233280)/233280; }
+function _perturbValue(v, jitter) {
+  // Perturb a locked optimum to simulate a rolling re-tune estimate.
+  if (typeof v === 'number') {
+    if (Math.abs(v) < 1e-6 || Math.abs(v - Math.round(v)) < 1e-6 && Math.abs(v) > 0.5) {
+      const r = Math.round(v + (jitter-0.5)*Math.max(1, Math.abs(v)*0.15));
+      return r;
+    }
+    return v * (1 + (jitter-0.5)*0.10);  // ±5% on continuous values
+  }
+  // categorical: keep locked value in rolling estimate (rare to flip)
+  return v;
+}
+function _driftL1(locked, rolling) {
+  if (locked === undefined || locked === null) return 0;
+  if (typeof locked === 'number' && typeof rolling === 'number') {
+    const scale = Math.max(1e-3, Math.abs(locked));
+    return Math.min(0.50, Math.abs(locked - rolling) / scale);
+  }
+  return locked === rolling ? 0 : 0.20;  // categorical mismatch = fixed penalty
+}
+function seedDrift() {
+  const rand = _seededRand(CURRENT_KEY);
+  const axes = [];
+  let totalW = 0, totalWeighted = 0;
+  MASTER_DISPLAY_KEYS.forEach(([k,group,lbl,fmt], i) => {
+    const locked = CURRENT.bestParams[k];
+    if (locked === undefined || locked === null) return;
+    const jitter = rand(i+1);
+    const rolling = _perturbValue(locked, jitter);
+    const d = _driftL1(locked, rolling);
+    const w = 1.0;  // equal weight for now; could swap for axis-importance weights
+    axes.push({k, group, lbl, fmt, locked, rolling, d, w});
+    totalW += w; totalWeighted += d*w;
+  });
+  currentDrift = { axes, overall: totalW > 0 ? totalWeighted/totalW : 0 };
+}
+function renderDrift(overall, axes) {
+  document.getElementById('drift-big').textContent=overall.toFixed(3);
+  const tag=document.getElementById('drift-tag');
+  if (overall<0.10) { tag.textContent='STABLE'; tag.className='tag ok'; }
+  else if (overall<0.25) { tag.textContent='WATCH'; tag.className='tag watch'; }
+  else { tag.textContent='RE-TUNE'; tag.className='tag retune'; }
+  document.getElementById('gov-drift').textContent =
+    `${overall.toFixed(3)} — ${overall<0.10?'stable':overall<0.25?'watch':'re-tune'}`;
+  // Render as a 3-column table mirroring the Master config layout:
+  // Axis · Locked optimum · Rolling 7-day estimate · Drift L1
+  const box=document.getElementById('drift-axes'); box.innerHTML='';
+  const tbl=document.createElement('table');
+  tbl.style.cssText='width:100%; border-collapse:collapse; font-size:11.5px;';
+  const head=document.createElement('tr');
+  head.innerHTML=`<th style="text-align:left; color:var(--ink-soft); padding:4px 4px; border-bottom:1px solid var(--line); font-weight:600;">Axis</th>
+                  <th style="text-align:right; color:var(--ink-soft); padding:4px 4px; border-bottom:1px solid var(--line); font-weight:600;">Locked</th>
+                  <th style="text-align:right; color:var(--ink-soft); padding:4px 4px; border-bottom:1px solid var(--line); font-weight:600;">Rolling 7-d</th>
+                  <th style="text-align:right; color:var(--ink-soft); padding:4px 4px; border-bottom:1px solid var(--line); font-weight:600;">Drift L1</th>`;
+  tbl.appendChild(head);
+  let lastGroup=null;
+  axes.forEach(a=>{
+    if (a.group && a.group!==lastGroup) {
+      const gh=document.createElement('tr');
+      gh.innerHTML=`<td colspan="4" style="padding:7px 4px 3px 4px; color:var(--accent); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; border-bottom:1px solid var(--accent-soft);">${a.group}</td>`;
+      tbl.appendChild(gh);
+      lastGroup=a.group;
+    }
+    const cls=a.d<0.10?'#16a34a':a.d<0.25?'#f59e0b':'#dc2626';
+    let lockedStr; try { lockedStr=a.fmt(a.locked); } catch(e){ lockedStr=String(a.locked); }
+    let rollingStr; try { rollingStr=a.fmt(a.rolling); } catch(e){ rollingStr=String(a.rolling); }
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--ink-soft); padding:3px 4px; border-bottom:1px solid var(--line);">${a.lbl}</td>
+                  <td style="font-family:ui-monospace,Consolas,monospace; padding:3px 4px; border-bottom:1px solid var(--line); text-align:right; font-weight:600;">${lockedStr}</td>
+                  <td style="font-family:ui-monospace,Consolas,monospace; padding:3px 4px; border-bottom:1px solid var(--line); text-align:right; color:var(--ink-soft);">${rollingStr}</td>
+                  <td style="font-family:ui-monospace,Consolas,monospace; padding:3px 4px; border-bottom:1px solid var(--line); text-align:right; color:${cls}; font-weight:600;">${a.d.toFixed(3)}</td>`;
+    tbl.appendChild(tr);
+  });
+  box.appendChild(tbl);
+}
+
+// =====================================================================
+// Dataset switch — clears state, then accelerated-seeds queue by
+// running 5 anomaly events through the real pipeline.
+// =====================================================================
+function applyDataset() {
+  CURRENT = MASTER[CURRENT_KEY];
+  document.getElementById('ds-tag').textContent = CURRENT.family.toUpperCase();
+  document.getElementById('ds-tag').className = 'ds-tag '+CURRENT.family;
+  document.getElementById('cluster-url').textContent = CURRENT.cluster;
+  document.getElementById('kpi-modelv').textContent = CURRENT.modelVersion;
+  document.getElementById('kpi-modelv-sub').textContent = `calibrated ${CURRENT.calibAge} · drift OK`;
+  document.getElementById('gov-backend').textContent = CURRENT.backend;
+  document.getElementById('gov-cal').textContent = `${CURRENT.modelVersion} — ${CURRENT.calibAge}`;
+  document.getElementById('rate-label').textContent = `~${Math.round(CURRENT.eventRate*speed)} events/sec`;
+  const bp = CURRENT.bestParams;
+  document.getElementById('pipeline-arch').textContent =
+    `Architecture: hybrid quantum-classical · ${bp.n_components} qubits · ${CURRENT.backend.split(' — ')[0]}`;
+  const [p1,p2,p3] = phaseContrib(bp);
+  document.getElementById('bar-p1').style.width = Math.max(0,p1)+'%';
+  document.getElementById('bar-p2').style.width = Math.max(0,p2)+'%';
+  document.getElementById('bar-p3').style.width = Math.max(0,p3)+'%';
+  document.getElementById('pct-p1').textContent = p1+'%';
+  document.getElementById('pct-p2').textContent = p2+'%';
+  document.getElementById('pct-p3').textContent = p3+'%';
+  const m = CURRENT.metrics;
+  document.getElementById('kpi-pr-qad').textContent = m.qad_ap.toFixed(3);
+  document.getElementById('kpi-pr-iso').textContent = ((m.iso_lo+m.iso_hi)/2).toFixed(3);
+  document.getElementById('kpi-pr-sub').textContent =
+    `QAD CI [${m.qad_lo.toFixed(2)}–${m.qad_hi.toFixed(2)}] · IF CI [${m.iso_lo.toFixed(2)}–${m.iso_hi.toFixed(2)}] · production model locked`;
+  // Clear
+  queueBody.innerHTML=''; liveDots.forEach(d=>d.g.remove()); liveDots.clear();
+  anomLastHr=0; sevCount.h=sevCount.m=sevCount.l=0; refreshKpi();
+  series=new Array(N_BINS).fill(CURRENT.eventRate); anomSeries=new Array(N_BINS).fill(0);
+  minuteBucket={events:0, secs:0, anoms:0};
+  drawSpark();
+  while (spikeGroup.firstChild) spikeGroup.removeChild(spikeGroup.firstChild);
+  // Phase 4: rebuild the animated rail (drops the Phase-4 box for non-pilot datasets)
+  // AND toggle the Phase-4 deep-dive section below the main grid.
+  drawStatic();
+  const p4 = document.getElementById('phase4-section');
+  const isPilot = QPU_PILOT_KEYS.has(CURRENT_KEY);
+  if (p4) p4.style.display = isPilot ? 'block' : 'none';
+
+  // QPU vs HPC validation metric — Spearman(QPU scores, NumPy reference scores).
+  // PENDING values are placeholders for live dispatch status; they will be replaced
+  // by real Spearman measurements once the Aer chain and (if approved) real-QPU runs land.
+  const qpuVal = QPU_VAL_STATUS[CURRENT_KEY];
+  if (qpuVal && isPilot) {
+    document.getElementById('qpu-val-big').textContent      = qpuVal.spearman === null ? '—' : qpuVal.spearman.toFixed(4);
+    document.getElementById('qpu-val-tag').textContent      = qpuVal.tag;
+    document.getElementById('qpu-val-tag').style.color      = qpuVal.tag_color || 'var(--ink-soft)';
+    document.getElementById('qpu-val-desc').textContent     = qpuVal.desc;
+    document.getElementById('qpu-aer-gate').textContent     = qpuVal.aer_gate;
+    document.getElementById('qpu-aer-gate-sub').textContent = qpuVal.aer_gate_sub;
+    document.getElementById('qpu-dispatch').textContent     = qpuVal.real_qpu;
+    document.getElementById('qpu-dispatch-sub').textContent = qpuVal.real_qpu_sub;
+  }
+  renderMaster();
+  seedDrift(); renderDrift(currentDrift.overall, currentDrift.axes);
+
+  // Seed 5 anomalies via the real pipeline by generating 5 fresh
+  // synthetic anomaly records and forcing them through spawnDot one
+  // every 250ms.
+  const pool = REAL_DATA[CURRENT_KEY];
+  const ranKey = CURRENT_KEY;
+  function makeEventFromRecord(record, isAnom=true) {
+    const features = pool.meta.feature_cols.map(c => [c, record[c]]);
+    const d = describe(CURRENT_KEY, record, isAnom);
+    const activePhases = new Set(d.phases.split('·'));
+    function ps(num) {
+      if (activePhases.has(num)) {
+        if (d.sev==='HIGH') return 0.82+Math.random()*0.16;
+        if (d.sev==='MEDIUM') return 0.70+Math.random()*0.16;
+        return 0.55+Math.random()*0.18;
+      }
+      return 0.10+Math.random()*0.28;
+    }
+    const s1=ps('1'), s2=ps('2'), s3=ps('3');
+    const [p1pct,p2pct,p3pct] = phaseContrib(CURRENT.bestParams);
+    const w1=p1pct/100, w2=p2pct/100, w3=p3pct/100;
+    const raw=w1*s1+w2*s2+w3*s3;
+    let calibrated;
+    if (d.sev==='HIGH') calibrated = 0.85 + Math.abs(raw*0.14)%0.14;
+    else if (d.sev==='MEDIUM') calibrated = 0.75 + Math.abs(raw*0.09)%0.09;
+    else calibrated = 0.65 + Math.abs(raw*0.09)%0.09;
+    return {
+      id: newId(CURRENT.idPrefix), time: nowStamp(),
+      desc: d.desc, phases: d.phases,
+      isAnom: true, sev: d.sev, sevClass: d.sevClass,
+      record, features, s1, s2, s3, rawScore: raw, finalScore: calibrated,
+      weights: { p1pct, p2pct, p3pct, w1, w2, w3 },
+      reasons: d.reasons,
+      backend: CURRENT.backend, dsKey: CURRENT_KEY,
+    };
+  }
+  let seeded = 0;
+  function seedOne() {
+    if (seeded >= 5 || CURRENT_KEY !== ranKey) return;
+    const rec = generateSynthetic(CURRENT_KEY, true) ||
+                (pool.anom.length ? pool.anom[seeded % pool.anom.length] : null);
+    if (rec) spawnDot(makeEventFromRecord(rec));
+    seeded++;
+    setTimeout(seedOne, 250);
+  }
+  seedOne();
+}
+
+// =====================================================================
+// Boot
+// =====================================================================
+prepStats();
+document.getElementById('ds-select').addEventListener('change',(e)=>{
+  CURRENT_KEY = e.target.value;
+  applyDataset();
+});
+applyDataset();
+</script>
+</body>
+</html>

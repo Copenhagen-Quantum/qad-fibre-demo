@@ -566,185 +566,6 @@ function prepStats() {
 // sampled record. NO randomness in the description: same record =
 // same description.
 // =====================================================================
-function describeFinance(key, rec, isAnom) {
-  if (!isAnom) return { desc:'Routine event — no flag', phases:'—', sev:null, sevClass:null, reasons:[] };
-  const reasons = [];
-  let desc, phases, sev;
-  if (key === 'mobile_money_fraud') {
-    const type = String(rec.type);
-    const amt = Number(rec.amount) || 0;
-    const newOrg = Number(rec.newbalanceOrig) || 0;
-    const oldOrg = Number(rec.oldbalanceOrg) || 0;
-    const drained = type === 'TRANSFER' && oldOrg > 100 && newOrg < 1;
-    if (drained && amt > 100000) {
-      desc = `${type} drains origin (${amt.toFixed(0)} → 0) — chain pattern`;
-      phases = '1·2·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: TRANSFER drains origin balance ${oldOrg.toFixed(2)} → ${newOrg.toFixed(2)}.`);
-      reasons.push(`Phase 1+2: amount ${amt.toFixed(2)} in top 1% of training distribution.`);
-      reasons.push(`Phase 3: temporal grouping flags as mule-fan-out signature.`);
-    } else if (drained) {
-      desc = `${type} drains origin (${amt.toFixed(0)} → 0)`;
-      phases = '1·2'; sev = 'MEDIUM';
-      reasons.push(`Phase 1: drain-to-zero pattern.`);
-      reasons.push(`Phase 2: amount-vs-balance ratio outside cardholder envelope.`);
-    } else if (amt > 200000) {
-      desc = `High-value ${type} ${amt.toFixed(0)}`;
-      phases = '1·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: amount ${amt.toFixed(2)} > $200k — rule-based flag.`);
-      reasons.push(`Phase 3: QAOA grouped with related transactions.`);
-    } else if (amt > 10000) {
-      desc = `Suspicious ${type} ${amt.toFixed(0)}`;
-      phases = '2·3'; sev = 'MEDIUM';
-      reasons.push(`Phase 2: reconstruction error elevated for this amount/type combo.`);
-      reasons.push(`Phase 3: pattern-cluster flag.`);
-    } else {
-      desc = `Anomalous ${type} ${amt.toFixed(2)}`;
-      phases = '2'; sev = 'LOW';
-      reasons.push(`Phase 2: reconstruction error mildly elevated.`);
-    }
-  } else if (key === 'aml_transaction_graph') {
-    const amt = Number(rec['Amount Received']) || 0;
-    const cur1 = String(rec['Payment Currency'] || '');
-    const cur2 = String(rec['Receiving Currency'] || '');
-    const fmt = String(rec['Payment Format'] || '');
-    const mismatch = cur1 !== cur2 && cur1 && cur2;
-    if (mismatch && amt > 100000) {
-      desc = `${fmt} ${amt.toFixed(0)} ${cur1}→${cur2} — multi-jurisdictional`;
-      phases = '1·2·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: amount ${amt.toFixed(2)} exceeds $100k threshold.`);
-      reasons.push(`Phase 2: currency mismatch (${cur1} → ${cur2}) — layering signature.`);
-      reasons.push(`Phase 3: temporal grouping flags multi-jurisdictional pattern.`);
-    } else if (mismatch) {
-      desc = `${fmt} currency mismatch (${cur1}→${cur2})`;
-      phases = '2·3'; sev = 'MEDIUM';
-      reasons.push(`Phase 2: currency mismatch ${cur1}→${cur2}.`);
-      reasons.push(`Phase 3: clustered with related cross-border transactions.`);
-    } else if (amt > 100000) {
-      desc = `High-value ${fmt} ${amt.toFixed(0)} ${cur1}`;
-      phases = '1·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: amount ${amt.toFixed(2)} > $100k.`);
-      reasons.push(`Phase 3: QAOA flagged shell-chain pattern via warm-started classical init.`);
-    } else if (fmt === 'Cash' && amt > 9000 && amt < 10500) {
-      desc = `Smurfing — ${fmt} ${amt.toFixed(0)} just under $10k`;
-      phases = '1·2·3'; sev = 'HIGH';
-      reasons.push(`Phase 1+2: amount ${amt.toFixed(2)} just under $10k reporting threshold — structured deposit.`);
-      reasons.push(`Phase 3: grouped with sequence of similar deposits in 6h window.`);
-    } else if (amt > 10000) {
-      desc = `${fmt} ${amt.toFixed(0)} ${cur1} — suspicious`;
-      phases = '2·3'; sev = 'MEDIUM';
-      reasons.push(`Phase 2: amount/format combo outside normal envelope.`);
-    } else {
-      desc = `${fmt} ${amt.toFixed(2)} ${cur1} — flagged`;
-      phases = '2'; sev = 'LOW';
-      reasons.push(`Phase 2: features outside training envelope.`);
-    }
-  } else if (key === 'bitcoin_aml_extended') {
-    const lifeBlocks = Number(rec['lifetime_in_blocks']) || 0;
-    const lifeDays = lifeBlocks / 144;
-    const sent = Number(rec['num_txs_as_sender']) || 0;
-    const totalTxs = Number(rec['total_txs']) || 0;
-    const multiAddr = Number(rec['num_addr_transacted_multiple']) || 0;
-    if (lifeBlocks < 500 && sent > 50) {
-      desc = `Peeling chain — ${sent} sends in ${lifeDays.toFixed(1)}d lifetime`;
-      phases = '1·2·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: lifetime ${lifeBlocks} blocks (~${lifeDays.toFixed(1)}d) + ${sent} sends — peeling-chain signature.`);
-      reasons.push(`Phase 3: QAOA grouped with similar short-lived wallets.`);
-    } else if (multiAddr > 20) {
-      desc = `Fan-out wallet — ${multiAddr} counterparties`;
-      phases = '1·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: ${multiAddr} repeat counterparties — wallet outside Elliptic-licit envelope.`);
-      reasons.push(`Phase 3: degree-out > 99.9th percentile.`);
-    } else if (lifeBlocks < 1000) {
-      desc = `Short-lived wallet — ${lifeDays.toFixed(1)}d, ${totalTxs} txs`;
-      phases = '1·2'; sev = 'MEDIUM';
-      reasons.push(`Phase 1: lifetime ${lifeDays.toFixed(1)}d typical of mixing/one-off wallets.`);
-    } else if (sent > 100) {
-      desc = `Velocity outlier — ${sent} sends`;
-      phases = '1·3'; sev = 'MEDIUM';
-      reasons.push(`Phase 3: send velocity exceeds 99th percentile.`);
-    } else {
-      desc = `Wallet flagged — lifetime ${lifeDays.toFixed(0)}d, ${totalTxs} txs`;
-      phases = '2'; sev = 'LOW';
-      reasons.push(`Phase 2: feature combination outside Elliptic-licit envelope.`);
-    }
-  } else if (key === 'vehicle_insurance_fraud') {
-    // Red-flag scoring against canonical vehicle-insurance-fraud indicators.
-    // Each flag adds to a count; severity = total flags.
-    const policeReport = String(rec.PoliceReportFiled || '');
-    const witness = String(rec.WitnessPresent || '');
-    const addrChange = String(rec.AddressChange_Claim || '');
-    const fault = String(rec.Fault || '');
-    const pastClaims = String(rec.PastNumberOfClaims || '');
-    const daysPolicy = String(rec.Days_Policy_Accident || '');
-    const monthRaw = rec['\ufeffMonth'] || rec.Month || '';
-    let flags = 0; const fired = [];
-    if (policeReport === 'No') { flags++; fired.push('no police report'); }
-    if (witness === 'No') { flags++; fired.push('no witness'); }
-    if (addrChange && addrChange !== 'no change') { flags++; fired.push(`address change (${addrChange})`); }
-    if (fault === 'Policy Holder') { flags++; fired.push('fault on policy holder'); }
-    if (pastClaims.includes('more than') || pastClaims.includes('4 to 8') || pastClaims === '2 to 4') { flags++; fired.push(`past claims (${pastClaims})`); }
-    if (daysPolicy === 'more than 30' || daysPolicy === '15 to 30') { flags++; fired.push(`claim filed ${daysPolicy} after accident`); }
-    if (flags >= 4) {
-      desc = `Multiple red flags (${flags}) — ${monthRaw} claim`;
-      phases = '1·2·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: ${flags} of 6 rule-based flags fired (${fired.slice(0,3).join(', ')}...).`);
-      reasons.push(`Phase 2: PCA-autoencoder reconstruction error elevated for this feature combination.`);
-      reasons.push(`Phase 3: QAOA grouped with similar policy-holder-at-fault claims.`);
-    } else if (flags >= 2) {
-      desc = `Suspicious claim (${flags} flags) — ${monthRaw}`;
-      phases = '1·2'; sev = 'MEDIUM';
-      reasons.push(`Phase 1+2: ${fired.join(', ')}.`);
-    } else if (flags >= 1) {
-      desc = `Claim review — ${fired[0] || 'feature outlier'}`;
-      phases = '2'; sev = 'LOW';
-      reasons.push(`Phase 2: ${fired[0] || 'feature combination outside training envelope'}.`);
-    } else {
-      desc = `Atypical claim pattern — ${monthRaw}`;
-      phases = '2'; sev = 'LOW';
-      reasons.push(`Phase 2: feature combination outside cardholder-normal envelope.`);
-    }
-  } else if (key === 'credit_card_fraud') {
-    // V1..V28 are PCA-whitened (anonymised); Amount and Time are raw.
-    // Severity from Amount × max-|z| over the V components vs normal pool.
-    const amt = Number(rec.Amount) || 0;
-    const stats = REAL_DATA[key].stats || {};
-    let maxZ = 0, topV = 'V1';
-    for (let i = 1; i <= 28; i++) {
-      const c = 'V' + i;
-      const v = rec[c];
-      if (typeof v === 'number' && stats[c]) {
-        const z = Math.abs((v - stats[c].mean) / stats[c].std);
-        if (z > maxZ) { maxZ = z; topV = c; }
-      }
-    }
-    if (amt > 500 && maxZ > 4) {
-      desc = `Card-not-present €${amt.toFixed(0)} · ${topV} ${maxZ.toFixed(1)}σ outlier`;
-      phases = '1·2·3'; sev = 'HIGH';
-      reasons.push(`Phase 1 (quantum kernel): ${topV} = ${rec[topV].toFixed(3)} (${maxZ.toFixed(1)}σ from cardholder cluster).`);
-      reasons.push(`Phase 2: amount €${amt.toFixed(2)} > 97th-pct + PCA-component outliers — joint deviation.`);
-      reasons.push(`Phase 3: QAOA grouped with 2-3 recent declined-then-retried attempts.`);
-    } else if (amt > 200) {
-      desc = `High-value €${amt.toFixed(0)} — ${topV} ${maxZ.toFixed(1)}σ`;
-      phases = '1·3'; sev = 'HIGH';
-      reasons.push(`Phase 1: ${topV} = ${rec[topV].toFixed(3)} (${maxZ.toFixed(1)}σ) — anomalous PCA component for cardholder.`);
-      reasons.push(`Phase 3: temporal-cluster signature.`);
-    } else if (maxZ > 3) {
-      desc = `PCA outlier — ${topV} ${maxZ.toFixed(1)}σ · €${amt.toFixed(2)}`;
-      phases = '1·2'; sev = 'MEDIUM';
-      reasons.push(`Phase 1+2: ${topV} component outside 99.7th-percentile envelope.`);
-    } else if (amt > 50) {
-      desc = `Suspicious transaction €${amt.toFixed(2)}`;
-      phases = '2'; sev = 'MEDIUM';
-      reasons.push(`Phase 2: amount/feature combination outside cardholder envelope.`);
-    } else {
-      desc = `Micro-charge probe €${amt.toFixed(2)}`;
-      phases = '2'; sev = 'LOW';
-      reasons.push(`Phase 2: low-amount recon-probe pattern.`);
-    }
-  }
-  const sevClass = sev === 'HIGH' ? 'sev-high' : sev === 'MEDIUM' ? 'sev-med' : 'sev-low';
-  return { desc, phases, sev, sevClass, reasons };
-}
 
 // Fibre: orig_class drives description; severity from class semantics
 const FIBRE_SEV = {
@@ -825,9 +646,7 @@ function describeFibre(key, rec, isAnom) {
 }
 
 function describe(key, rec, isAnom) {
-  return (MASTER[key].family === 'finance')
-    ? describeFinance(key, rec, isAnom)
-    : describeFibre(key, rec, isAnom);
+  return describeFibre(key, rec, isAnom);
 }
 
 // =====================================================================
@@ -907,47 +726,8 @@ function generateSynthetic(dsKey, isAnom) {
   return out;
 }
 function _postProcess(dsKey, rec, isAnom) {
-  // Dataset-specific derived-field consistency. Keeps the synthetic
-  // record self-consistent even when independent per-column sampling
-  // would produce nonsensical combinations (e.g. amount > balance).
-  if (dsKey === 'mobile_money_fraud') {
-    const amt = Number(rec.amount) || 0;
-    const oldOrg = Number(rec.oldbalanceOrg) || 0;
-    if (isAnom && rec.type === 'TRANSFER') {
-      rec.newbalanceOrig = Math.max(0, Number((oldOrg - amt).toFixed(2)));
-    } else if (['CASH_OUT','PAYMENT','DEBIT'].includes(rec.type)) {
-      rec.newbalanceOrig = Math.max(0, Number(Math.max(oldOrg - amt, 0).toFixed(2)));
-    } else if (rec.type === 'CASH_IN') {
-      rec.newbalanceOrig = Number((oldOrg + amt).toFixed(2));
-    }
-    const oldDest = Number(rec.oldbalanceDest) || 0;
-    if (['TRANSFER','CASH_IN','PAYMENT'].includes(rec.type)) {
-      rec.newbalanceDest = Number((oldDest + amt).toFixed(2));
-    }
-    rec.nameOrig = 'C' + (100000000 + Math.floor(Math.random()*899999999));
-    rec.nameDest = (Math.random() < 0.4 ? 'M' : 'C') + (100000000 + Math.floor(Math.random()*899999999));
-  } else if (dsKey === 'aml_transaction_graph') {
-    const sent = Number(rec['Amount Sent']);
-    if (!isNaN(sent)) rec['Amount Received'] = Number((sent * (0.995 + Math.random()*0.005)).toFixed(2));
-    rec.Timestamp = new Date(Date.now() - Math.random()*86400000).toISOString().replace('T',' ').slice(0,19);
-    const fresh = () => Math.random().toString(36).slice(2,11).toUpperCase();
-    if ('Account' in rec) rec.Account = fresh();
-    if ('From Account' in rec) rec['From Account'] = fresh();
-    if ('To Account' in rec) rec['To Account'] = fresh();
-  } else if (dsKey === 'bitcoin_aml_extended') {
-    const fb = Number(rec.first_block_appeared_in);
-    const lb = Number(rec.last_block_appeared_in);
-    if (!isNaN(fb) && !isNaN(lb)) {
-      const lo = Math.min(fb, lb), hi = Math.max(fb, lb);
-      rec.first_block_appeared_in = lo;
-      rec.last_block_appeared_in  = hi;
-      rec.lifetime_in_blocks = hi - lo;
-    }
-    rec.address = '1' + Math.random().toString(36).slice(2,11).toUpperCase();
-  } else if (dsKey === 'credit_card_fraud') {
-    if (typeof rec.Amount === 'number') rec.Amount = Math.max(0, Number(rec.Amount.toFixed(2)));
-    if (typeof rec.Time === 'number') rec.Time = Math.max(0, Math.round(rec.Time));
-  }
+  // Fibre datasets have no derived-field cross-dependencies; per-column
+  // sampling is self-consistent. Stub retained for forward compatibility.
 }
 
 // =====================================================================
@@ -1509,6 +1289,7 @@ document.getElementById('btn-burst').addEventListener('click',()=>{ burstUntil=p
 // table communicates the conceptual phase structure rather than the
 // proprietary search-space axes.
 const _fNum  = (n,d=3)=>Number(n).toFixed(d);
+const _fBool = v=>v?'true':'false';
 const _fStr  = v=>String(v);
 const _fPct  = v=>(Number(v)*100).toFixed(2)+'%';
 const MASTER_DISPLAY_KEYS = [
