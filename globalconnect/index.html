@@ -603,7 +603,7 @@
 // Tuning results. Refresh by replacing this block only.
 // A field set to null shows "Not yet available" on the page.
 const RESULTS = {
-  "generated": "2026-11-09 23:12",
+  "generated": "2026-11-09 23:16",
   "datasets": {
     "fibre_intrusion": {
       "best_validation": 0.8449,
@@ -1336,9 +1336,9 @@ function addQueueRow(ev) {
     <td class="mono">${ev.time}</td>
     <td class="mono">${ev.id}</td>
     <td>${ev.desc}</td>
-    <td class="phases">${ev.phases}</td>
-    <td class="score">${ev.finalScore.toFixed(2)}</td>
-    <td class="${ev.sevClass}">${ev.sev}</td>
+    <td class="phases">—</td>
+    <td class="score">—</td>
+    <td>—</td>
     <td>${ev.outcome === 'caught' ? 'Caught' : NA}</td>
     <td><a class="insp" href="#" onclick="event.preventDefault()">Double-click row →</a></td>`;
   tr.addEventListener('dblclick',()=>openInspect(ev));
@@ -1392,23 +1392,19 @@ function openInspect(ev) {
     tr.innerHTML=`<td>${c}</td><td class="mono">${vstr}${zstr}</td>`;
     tbl.appendChild(tr);
   });
-  document.getElementById('ins-s1').textContent = ev.s1.toFixed(3);
-  document.getElementById('ins-s2').textContent = ev.s2.toFixed(3);
-  document.getElementById('ins-s3').textContent = ev.s3.toFixed(3);
-  document.getElementById('ins-b1').style.width = (ev.s1*100).toFixed(1)+'%';
-  document.getElementById('ins-b2').style.width = (ev.s2*100).toFixed(1)+'%';
-  document.getElementById('ins-b3').style.width = (ev.s3*100).toFixed(1)+'%';
-  document.getElementById('ins-cal').textContent = ev.finalScore.toFixed(3);
-  document.getElementById('ins-sev').textContent = ev.sev || '—';
-  document.getElementById('ins-sev').className = 'r '+(ev.sevClass||'');
+  ['ins-s1','ins-s2','ins-s3','ins-cal','ins-sev'].forEach(id => { document.getElementById(id).textContent = 'Not shown yet'; });
+  ['ins-b1','ins-b2','ins-b3'].forEach(id => { document.getElementById(id).style.width = '0%'; });
+  document.getElementById('ins-sev').className = 'r';
   document.getElementById('ins-backend').textContent = ev.backend;
   const ul=document.getElementById('ins-reasons'); ul.innerHTML='';
-  ev.reasons.forEach(r=>{ const li=document.createElement('li'); li.textContent=r; ul.appendChild(li); });
+  const liTruth = document.createElement('li');
+  liTruth.textContent = ev.isAnom ? `True label: anomaly${ev.record && ev.record.__orig_class__ ? ' (' + String(ev.record.__orig_class__).replace(/_/g, ' ') + ')' : ''}.` : 'True label: normal.';
+  ul.appendChild(liTruth);
   const li = document.createElement('li');
   li.style.color='var(--muted)';
   li.style.fontSize='11px';
   li.style.marginTop='8px';
-  li.textContent = `Phase indicators are illustrations computed from how this row compares with this dataset's own sample. They are not model outputs. Detection: ${ev.outcome === 'caught' ? 'shown as caught' : NA}.`;
+  li.textContent = 'The measurements above are this row\'s real recorded values, ranked by how far each sits from this dataset\'s normal rows. Model scores per phase are not shown yet: the next version adds the recorded scores of an earlier run for each row.';
   ul.appendChild(li);
   const liProv = document.createElement('li');
   liProv.style.color='var(--muted)';
