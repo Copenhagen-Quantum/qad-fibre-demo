@@ -319,7 +319,7 @@
 
 <main>
   <div class="banner">
-    Demonstration page. The stream replays recorded rows from the selected dataset at demonstration speed; timing and the caught and missed split are illustrations. All scores are interim: no study has finished, and the real quantum hardware step has not run. See "Tuning results" for the current best-so-far validation results.
+    Demonstration page. The stream replays recorded rows from the selected dataset at demonstration speed; each dot is one recorded row with its true label: red for an anomaly, blue for a normal row. Timing is a demonstration speed. Per-event detection by the tuned model is not shown until a final model exists. All scores are interim: no study has finished, and the real quantum hardware step has not run. See "Tuning results" for the current best-so-far validation results.
   </div>
 
   <div class="grid" style="margin-bottom: 14px;">
@@ -603,7 +603,7 @@
 // Tuning results. Refresh by replacing this block only.
 // A field set to null shows "Not yet available" on the page.
 const RESULTS = {
-  "generated": "2026-11-09 23:05",
+  "generated": "2026-11-09 23:12",
   "datasets": {
     "fibre_intrusion": {
       "best_validation": 0.8449,
@@ -828,7 +828,7 @@ function renderFlowBasis() {
   const key = CURRENT_KEY, r = (RESULTS.datasets || {})[key] || {};
   const pct = REAL_DATA[key].meta.anom_rate_pct.toFixed(2);
   const share = catchShare(key);
-  const detection = share === null ? ` Detection: ${NA}.` :
+  const detection = ' Each dot keeps the true label of its row: red anomaly, blue normal, and anomalies go to the queue. Per-event detection is shown once a final tuned model exists; the current best-so-far scores are under "Tuning results".'; const _unusedDetection = share === null ? ` Detection: ${NA}.` :
     ` Shown as caught: ${(share*100).toFixed(1)}% of anomalies = (best-so-far ${r.best_validation.toFixed(3)} − base rate ${(r.base_rate_pct/100).toFixed(3)}) ÷ (1 − base rate), recomputed at each load. This is an illustration, not a measured detection rate.`;
   document.getElementById('flow-basis').textContent =
     `This flow uses ${CURRENT.label} only: its real ${pct}% anomaly share, its real event-type mix and recorded rows from its own sample.${detection}`;
@@ -836,7 +836,7 @@ function renderFlowBasis() {
 }
 function refreshFlowCounts() {
   document.getElementById('flow-counts').textContent = catchShare(CURRENT_KEY) === null ?
-    `Detection: ${NA}` : `Caught ${flowCaught} · Missed ${flowMissed}`;
+    `Anomalies ${flowCaught} · Normal ${flowMissed}` : `Anomalies ${flowCaught} · Normal ${flowMissed}`;
 }
 function _rank(arr, x) {
   let lo = 0, hi = arr.length;
@@ -1146,12 +1146,7 @@ function pickRow(key, isAnom) {
   return rows[Math.floor(Math.random() * rows.length)];
 }
 function decideOutcome(key, isAnom) {
-  if (!isAnom) return 'normal';
-  const share = catchShare(key);
-  if (share === null) return 'unknown';
-  _catchAccum += share;
-  if (_catchAccum >= 1) { _catchAccum -= 1; return 'caught'; }
-  return 'missed';
+  return isAnom ? 'anomaly' : 'normal';
 }
 function buildEvent(forceAnom = false) {
   const pool = REAL_DATA[CURRENT_KEY];
@@ -1232,17 +1227,12 @@ function drawStatic() {
   const flagT=document.createElementNS(svgNS,'text');
   flagT.setAttribute('x',1240); flagT.setAttribute('y',yMid+22);
   flagT.setAttribute('font-size',11); flagT.setAttribute('fill',tok('--bad')); flagT.setAttribute('font-weight',600);
-  flagT.textContent = catchShare(CURRENT_KEY) === null ? '→ Anomaly → queue' : '→ Caught → queue';
+  flagT.textContent = '→ Anomaly → queue';
   pipe.appendChild(flagT);
   const flowT = document.createElementNS(svgNS,'text');
   flowT.setAttribute('x',1240); flowT.setAttribute('font-size',10);
-  if (catchShare(CURRENT_KEY) === null) {
-    flowT.setAttribute('y',yMid+36); flowT.setAttribute('fill',tok('--muted'));
-    flowT.textContent = 'Detection: not yet available';
-  } else {
-    flowT.setAttribute('y',yMid+3); flowT.setAttribute('fill',tok('--amber')); flowT.setAttribute('font-weight',600);
-    flowT.textContent = '→ Missed anomaly';
-  }
+  flowT.setAttribute('y',yMid+52); flowT.setAttribute('fill',tok('--muted'));
+  flowT.textContent = 'Colour = true label';
   pipe.appendChild(flowT);
   phases.forEach(p=>{
     const rect=document.createElementNS(svgNS,'rect');
@@ -1277,7 +1267,7 @@ function spawnDot(forcedEvent=null) {
   // Real-time per-second anomaly counter, drained by frame() into the minute bucket.
   if (ev && ev.isAnom) anomThisSec += 1;
   const lane = lanes[Math.floor(Math.random()*lanes.length)];
-  const fillColor = tok('--accent');
+  const fillColor = (ev && ev.isAnom) ? tok('--bad') : tok('--accent');
   const g=document.createElementNS(svgNS,'g');
   const c=document.createElementNS(svgNS,'circle');
   c.setAttribute('r',4.5); c.setAttribute('cx',50); c.setAttribute('cy',lane);
@@ -1309,12 +1299,11 @@ function tickDots(now) {
     const u=(now-t.t0)/t.duration;
     if (u>=1) {
       if (t.ev.isAnom) {
-        if (t.ev.outcome === 'missed') {
-          flowMissed += 1;
-        } else {
-          if (t.ev.outcome === 'caught') flowCaught += 1;
-          addQueueRow(t.ev);
-        }
+        flowCaught += 1;
+        addQueueRow(t.ev);
+        refreshFlowCounts();
+      } else {
+        flowMissed += 1;
         refreshFlowCounts();
       }
       t.g.setAttribute('opacity',0);
@@ -1324,8 +1313,7 @@ function tickDots(now) {
     const x=50+u*(1240-50);
     let y=t.lane;
     if (u>0.85) {
-      const branchY = t.ev.outcome === 'missed' ? yMid : (t.ev.isAnom ? (yMid+24) : (yMid-24));
-      if (t.ev.outcome === 'missed' && !t._m) { t.c.setAttribute('fill', tok('--amber')); t._m = 1; }
+      const branchY = t.ev.isAnom ? (yMid+24) : (yMid-24);
       const k=(u-0.85)/0.15;
       y=t.lane+(branchY-t.lane)*k;
     }
@@ -1335,17 +1323,6 @@ function tickDots(now) {
     if (!t._rank) t._rank = 0;
     if (!t._detected) t._detected = [false, false, false];
     const scores = [t.ev.s1, t.ev.s2, t.ev.s3];
-    for (let i = 0; i < 3; i++) {
-      if (!t._detected[i] && u >= PHASE_DETECT_U[i]) {
-        const col = _phaseColor(scores[i]);
-        if (col && col.rank > t._rank && t.ev.outcome === 'caught') {
-          t.c.setAttribute('fill', col.fill);
-          t.c.setAttribute('r', col.r);
-          t._rank = col.rank;
-        }
-        t._detected[i] = true;
-      }
-    }
   }
 }
 
