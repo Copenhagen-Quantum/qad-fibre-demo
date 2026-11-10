@@ -8,7 +8,7 @@
   :root {
     --bg:#06141A; --panel:#081C25; --panel2:#0A2330; --rule:#1C4657; --chip:#0D3A4C;
     --accent:#57C7EA; --mid:#2E92BA; --ink:#DCEEF6; --muted:#8FB3C4;
-    --amber:#E8B14A; --bad:#EE7B63; --good:#6FD3A0; --pale:#A7C4E8;
+    --amber:#E8B14A; --miss:#C38BF5; --bad:#EE7B63; --good:#6FD3A0; --pale:#A7C4E8;
     --accent-soft:rgba(87,199,234,.10); --accent-area:rgba(87,199,234,.18);
     --amber-soft:rgba(232,177,74,.13); --bad-soft:rgba(238,123,99,.14); --bad-area:rgba(238,123,99,.45);
     --good-soft:rgba(111,211,160,.14); --scrim:rgba(2,8,12,.72); --shadow:rgba(0,0,0,.5);
@@ -62,6 +62,12 @@
     background: var(--amber-soft); border: 1px solid var(--amber); color: var(--amber);
     padding: 10px 14px; border-radius: 8px; margin: 0 0 14px; font-size: 13px;
   }
+  .banner.datadesc { background: var(--panel); border-color: var(--rule); color: var(--ink); line-height: 1.5; }
+  .datadesc h3 { margin: 0 0 6px; font-size: 13px; }
+  .datadesc dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 0; }
+  .datadesc dt { color: var(--muted); }
+  .datadesc dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  @media (max-width: 560px) { .datadesc dl { grid-template-columns: 1fr; } .datadesc dd { margin-bottom: 4px; } }
 
   .grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
   .panel {
@@ -271,7 +277,8 @@
   .flow-legend svg { flex: none; overflow: visible; }
   .flow-counts { margin-top: 8px; font-size: 13px; }
   .oc-caught { color: var(--bad); font-weight: 600; }
-  .oc-missed, .oc-fa { color: var(--amber); font-weight: 600; }
+  .oc-missed { color: var(--miss); font-weight: 600; }
+  .oc-fa { color: var(--amber); font-weight: 600; }
   .oc-ok { color: var(--good); font-weight: 600; }
   .ps-cal .row .r.oc-caught { color: var(--bad); }
   .ps-cal .row .r.oc-fa { color: var(--amber); }
@@ -351,9 +358,7 @@
 </header>
 
 <main>
-  <div class="banner">
-    Demonstration page. For Fibre Health, Acoustic Sensing: Audible Signals and Acoustic Sensing: Field Events the pipeline replays the recorded test rows of an earlier evaluation (version 2.6 tuned settings): every dot is one recorded row with its true label (red anomaly, blue normal), and its route is the recorded model decision at one stated operating point. For Fibre Intrusion and OTDR Event Classes the pipeline replays real recorded rows by their true label (anomalies go to the queue); recorded model decisions for them are not available yet. Timing is a demonstration speed. All tuning scores are interim: no study has finished, and the real quantum hardware step has not run. See "Tuning results" for the current best-so-far validation results.
-  </div>
+  <div class="banner datadesc" id="ds-desc" aria-live="polite"></div>
 
   <div class="grid" style="margin-bottom: 14px;">
     <div class="panel kpi span3">
@@ -398,7 +403,7 @@
       <div class="flow-legend only-recorded">
         <span class="grp">Route = recorded decision</span>
         <span class="it"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" style="fill:var(--bad)" /></svg><span class="oc-caught">Caught</span>: anomaly → queue</span>
-        <span class="it"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" style="fill:var(--bad);stroke:var(--amber);stroke-width:2.5;stroke-dasharray:2 2"/></svg><span class="oc-missed">Missed</span>: anomaly → normal exit, marked "missed"</span>
+        <span class="it"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" style="fill:var(--miss)"/></svg><span class="oc-missed">Missed (not detected)</span>: anomaly → normal exit, turns violet, marked "missed"</span>
         <span class="it"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" style="fill:var(--accent);stroke:var(--amber);stroke-width:2.5;stroke-dasharray:2 2"/></svg><span class="oc-fa">False alarm</span>: normal → queue, marked "false alarm"</span>
         <span class="it"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" style="fill:var(--accent)" /></svg><span class="oc-ok">Correct normal</span>: normal → normal exit</span>
       </div>
@@ -609,7 +614,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6 · 2026-11-10
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.1 · 2026-11-10
   </footer>
 </main>
 
@@ -667,7 +672,7 @@
 // Tuning results. Refresh by replacing this block only.
 // A field set to null shows "Not yet available" on the page.
 const RESULTS = {
-  "generated": "2026-11-10 10:35",
+  "generated": "2026-11-10 11:12",
   "datasets": {
     "fibre_intrusion": {
       "best_validation": 0.8449,
@@ -1426,12 +1431,18 @@ function markOutcome(t) {
   const o = t.ev.row.outcome;
   t.c.setAttribute('data-zone', 'exit');
   if (o === 'missed' || o === 'false_alarm') {
-    t.c.setAttribute('stroke', tok('--amber')); t.c.setAttribute('stroke-width', 2.5);
-    t.c.setAttribute('stroke-opacity', 1); t.c.setAttribute('stroke-dasharray', '2 2');
+    const col = tok(o === 'missed' ? '--miss' : '--amber');
+    if (o === 'missed') {
+      t.c.setAttribute('fill', col); t.c.removeAttribute('stroke'); t.c.removeAttribute('stroke-dasharray');
+      t.c.removeAttribute('stroke-opacity'); t.c.removeAttribute('stroke-width');
+    } else {
+      t.c.setAttribute('stroke', col); t.c.setAttribute('stroke-width', 2.5);
+      t.c.setAttribute('stroke-opacity', 1); t.c.setAttribute('stroke-dasharray', '2 2');
+    }
     t.c.setAttribute('r', 6);
     const tag = document.createElementNS(svgNS, 'text');
     tag.setAttribute('font-size', 10); tag.setAttribute('font-weight', 700);
-    tag.setAttribute('fill', tok('--amber')); tag.setAttribute('text-anchor', 'end');
+    tag.setAttribute('fill', col); tag.setAttribute('text-anchor', 'end');
     tag.setAttribute('class', 'outcome-tag');
     tag.textContent = o === 'missed' ? 'missed' : 'false alarm';
     t.g.appendChild(tag); t.tag = tag;
@@ -1865,11 +1876,39 @@ function applyDataset() {
 prepFlow();
 renderExplainer();
 renderResults();
+const DATA_NOTES = {
+  fibre_intrusion: { features: 'numerical features computed from each record' },
+  fibre_health: { features: 'numerical features computed from each trace' },
+  fibre_das_audible: { features: 'numerical features computed from each segment' },
+  fibre_das_event: { features: 'numerical features computed from each window' },
+  fibre_otdr_event: { features: 'the signal-to-noise ratio and the 30 trace points',
+    excluded: 'Three source columns (position, reflectance, loss) describe the labelled event itself, so they are not used as features.' },
+};
+function renderDataDesc() {
+  const box = document.getElementById('ds-desc');
+  const M = MASTER[CURRENT_KEY], R = REAL_DATA[CURRENT_KEY], N = DATA_NOTES[CURRENT_KEY] || {};
+  if (!box || !M || !R || !R.meta) { if (box) box.textContent = ''; return; }
+  const m = R.meta, nf = (x) => Number(x).toLocaleString('en-US');
+  const normals = [...new Set(R.norm.map((r) => r.__orig_class__))].map(classText);
+  const anoms = (m.anom_classes || []).map(classText);
+  const rows = [
+    ['Source', esc(m.source.charAt(0).toUpperCase() + m.source.slice(1)) + '.'],
+    ['One row', esc(M.sensor.replace(/^Each event is /, '').replace(/^./, (c) => c.toUpperCase()))],
+    ['Size', `${nf(m.total_rows)} rows: ${nf(m.positives)} anomalies (${Number(m.anom_rate_pct).toFixed(1)}%) and ${nf(m.total_rows - m.positives)} normal rows.`],
+    ['Features', `${m.feature_cols.length}: ${esc(N.features || 'numerical features')}.${N.excluded ? ' ' + esc(N.excluded) : ''}`],
+    ['Normal rows', esc(normals.join('; ')) + '.'],
+    ['Anomaly classes', esc(anoms.join('; ')) + '.'],
+  ];
+  if (M.caution) rows.push(['Note', esc(M.caution)]);
+  box.innerHTML = `<h3>Data: ${esc(M.label)}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+}
 document.getElementById('ds-select').addEventListener('change',(e)=>{
   CURRENT_KEY = e.target.value;
   applyDataset();
+  renderDataDesc();
 });
 applyDataset();
+renderDataDesc();
 requestAnimationFrame(frame);
 </script>
 </body>
