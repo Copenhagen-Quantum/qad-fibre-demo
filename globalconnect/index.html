@@ -614,7 +614,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.1 · 2026-11-10
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.2 · 2026-11-10
   </footer>
 </main>
 
@@ -672,7 +672,7 @@
 // Tuning results. Refresh by replacing this block only.
 // A field set to null shows "Not yet available" on the page.
 const RESULTS = {
-  "generated": "2026-11-10 11:39",
+  "generated": "2026-11-10 11:51",
   "datasets": {
     "fibre_intrusion": {
       "best_validation": 0.8449,
@@ -850,27 +850,27 @@ const NO_QPU_TEXT = 'Classical simulation (NumPy) · no quantum hardware used';
 const MASTER = {
   fibre_intrusion: {
     label:'Fibre Intrusion', family:'fibre', eventRate:60, unit:'records', idPrefix:'phi', caution:'',
-    sensor:'Each event is one phase-sensitive OTDR record: 10,000 time samples at 12 positions along the cable.',
+    sensor:'Each event is a short vibration recording from 12 neighbouring spots along a buried cable.',
   },
   fibre_health: {
     label:'Fibre Health', family:'fibre', eventRate:8, unit:'traces', idPrefix:'health',
     caution:'Anomalies in this dataset are simulated faults.',
-    sensor:'Each event is one full OTDR trace of a fibre link.',
+    sensor:'Each event is one full test measurement of a fibre link: the light reflected back from every point along the fibre.',
   },
   fibre_das_audible: {
     label:'Acoustic Sensing: Audible Signals', family:'fibre', eventRate:40, unit:'segments', idPrefix:'das-a',
     caution:'Only 10 anomalies in the development data: treat as a rough indication.',
-    sensor:'Each event is one 1-second DAS segment at 10 positions along the cable; segments overlap by half.',
+    sensor:'Each event is a one-second sound recording from 10 spots along the cable.',
   },
   fibre_das_event: {
     label:'Acoustic Sensing: Field Events', family:'fibre', eventRate:5, unit:'windows', idPrefix:'das-e',
     caution:'At most 1 validation anomaly per repeat: treat as a rough indication.',
-    sensor:'Each event is one DAS time window of 8,192 samples at a marked position along the cable.',
+    sensor:'Each event is a short vibration recording from one spot on the cable, taken at a moment the dataset\'s authors marked.',
   },
   fibre_otdr_event: {
     label:'OTDR Event Classes', family:'fibre', eventRate:12, unit:'segments', idPrefix:'otdr',
     caution:'Most rows are anomalies, so chance alone scores near 0.87.',
-    sensor:'Each event is one short OTDR trace segment of 30 points.',
+    sensor:'Each event is a short piece of a fibre test measurement: the light reflected back along one stretch of fibre.',
   },
 };
 
@@ -1189,7 +1189,7 @@ function markSelectedRow() {
 const DATASET_CARDS = [
   { key:'fibre_intrusion',
     what:'Vibration along a fibre cable, recorded while activity takes place near it, together with quiet background.',
-    how:'Phase-sensitive OTDR. Each record holds 10,000 time samples at 12 positions along the cable.',
+    how:'Phase-sensitive OTDR: laser pulses sent down the fibre pick up vibration along it. Each record covers 12 neighbouring spots along the cable.',
     row:'One record. Six figures per position (level, spread, range, energy and two frequency measures) give 72 numbers.',
     anom:'Any activity event. Background records are normal.',
     types:'Dig, knock, water, shake, walk.',
@@ -1214,7 +1214,7 @@ const DATASET_CARDS = [
   { key:'fibre_das_event',
     what:'Events sensed by a fibre during everyday activity near the cable, compared with regular conditions.',
     how:'Distributed Acoustic Sensing. One file per event type is taken from a larger public collection.',
-    row:'One time window of 8,192 samples at a marked position along the cable; windows shift by 2,048 samples. Its frequency content gives 64 numbers: the average log signal level in 54 frequency bands (low band numbers are low frequencies); the last 10 numbers are always zero.',
+    row:'A short vibration recording from one spot on the cable, taken at a moment the dataset\'s authors marked. Its frequency content gives 64 numbers: the signal level in 54 frequency bands, from low to high; the last 10 numbers are always zero.',
     anom:'Any of the eight event types. Regular conditions are normal.',
     types:'Car, construction, fence, longboard, manipulation, open/close, running, walk.',
     note:'Only 8 anomalies exist in total, one per event type, and at most 1 falls in the validation part of each repeat.',
@@ -1222,7 +1222,7 @@ const DATASET_CARDS = [
   { key:'fibre_otdr_event',
     what:'Short OTDR trace segments, some containing an event and some clean.',
     how:'OTDR trace segments with a 30-point signal and a signal-to-noise figure for each segment.',
-    row:'One trace segment: 30 points plus its signal-to-noise ratio. The data also records position, reflectance and loss for each event.',
+    row:'One trace segment: 30 points plus its signal-to-noise ratio. The source also lists position, reflectance and loss for each event; these describe the event itself, so they are not used.',
     anom:'Any of seven event classes. Class 0 is normal.',
     types:'Seven classes, covering reflective, non-reflective and merged events and fault sub-categories.',
     note:'The data is curated so that events dominate. Events are far rarer in real networks, so 87.25% is not an operating rate.',
