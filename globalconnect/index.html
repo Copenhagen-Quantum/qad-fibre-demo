@@ -403,7 +403,7 @@
       <div class="flow-legend only-recorded">
         <span class="grp">Route = recorded decision</span>
         <span class="it"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" style="fill:var(--bad)" /></svg><span class="oc-caught">Caught</span>: anomaly → queue</span>
-        <span class="it"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" style="fill:var(--miss)"/></svg><span class="oc-missed">Missed (not detected)</span>: anomaly → normal exit, turns violet, marked "missed"</span>
+        <span class="it"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" style="fill:var(--miss)"/></svg><span class="oc-missed">Missed (not detected)</span>: anomaly → normal exit, violet all the way, marked "missed"</span>
         <span class="it"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" style="fill:var(--accent);stroke:var(--amber);stroke-width:2.5;stroke-dasharray:2 2"/></svg><span class="oc-fa">False alarm</span>: normal → queue, marked "false alarm"</span>
         <span class="it"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" style="fill:var(--accent)" /></svg><span class="oc-ok">Correct normal</span>: normal → normal exit</span>
       </div>
@@ -614,7 +614,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.2 · 2026-11-10
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.3 · 2026-11-11
   </footer>
 </main>
 
@@ -990,7 +990,7 @@ function renderFlowBasis() {
   box.style.gridTemplateColumns = F.status === 'recorded' ? '' : '1fr';
   if (F.status === 'recorded') {
     const d = F.d;
-    basis.textContent = `Each dot is one recorded test row of ${CURRENT.label}, replayed in shuffled order and looping. Its colour is the row's true label; its route is the recorded model's decision at the stated operating point.`;
+    basis.textContent = `Each dot is one recorded test row of ${CURRENT.label}, replayed in shuffled order and looping. Its route is the recorded model's decision at the stated operating point. Red = caught anomaly (goes to the queue), violet = missed anomaly (goes to the normal exit), blue = normal row; a blue row in the queue is a false alarm.`;
     sensor.textContent = `${CURRENT.sensor} Speed is a demonstration speed, not a measured rate.`;
     const cmEq = `${F.cm.caught} caught · ${F.cm.missed} missed · ${F.cm.false_alarm} false ${F.cm.false_alarm === 1 ? 'alarm' : 'alarms'} · ${F.cm.correct_normal} correct normal`;
     box.innerHTML = `
@@ -1391,7 +1391,8 @@ function spawnDot() {
   const g = document.createElementNS(svgNS, 'g');
   const c = document.createElementNS(svgNS, 'circle');
   c.setAttribute('r', 4.5); c.setAttribute('cx', X0); c.setAttribute('cy', lane);
-  c.setAttribute('fill', ev.row.y ? tok('--bad') : tok('--accent'));
+  // Recorded decisions: a missed anomaly is violet from the start, so red always means caught (queue).
+  c.setAttribute('fill', ev.row.outcome === 'missed' ? tok('--miss') : (ev.row.y ? tok('--bad') : tok('--accent')));
   c.setAttribute('opacity', 0.9);
   c.setAttribute('data-row', ev.row.row);
   if (ev.row.sid !== undefined) c.setAttribute('data-sid', ev.row.sid);
