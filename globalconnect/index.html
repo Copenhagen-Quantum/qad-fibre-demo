@@ -428,12 +428,12 @@
       <div class="sub" id="kpi-flag-sub"></div>
     </div>
     <div class="panel kpi span3">
-      <h2>Best-so-far validation score</h2>
+      <h2 id="kpi-best-title">Best-so-far validation score</h2>
       <div class="value" id="kpi-best"></div>
       <div class="sub" id="kpi-best-sub"></div>
     </div>
     <div class="panel kpi span3">
-      <h2>Model status</h2>
+      <h2>Version 2.7 status</h2>
       <div class="value" style="font-size: 22px;" id="kpi-modelv">Tuning in progress</div>
       <div class="sub" id="kpi-modelv-sub">No final configuration yet</div>
     </div>
@@ -559,7 +559,6 @@
           <th>Trials finished per repeat</th>
           <th>Counted trials of 400 per repeat</th>
           <th>Last update</th>
-          <th>Earlier recorded test scores</th>
         </tr></thead>
         <tbody id="res-body"></tbody>
       </table>
@@ -573,7 +572,7 @@
         <li><b>OTDR Event Classes</b> has 87.25% anomalies (125,832 rows). Its average precision has a baseline near 0.87. A score of 0.87 there means almost no skill, not "87% performance". This dataset is being re-run with corrected inputs, so no score is shown for it yet.</li>
         <li><b>Acoustic Sensing: Field Events</b> has very few anomalies, at most 1 validation anomaly per repeat. One event changes the score a lot, so treat it as a rough indication.</li>
         <li><b>Acoustic Sensing: Audible Signals</b> has 10 anomalies in the development data. The same caution applies.</li>
-        <li>Earlier test scores come from earlier model versions (2.5 and 2.6). They are shown for comparison only.</li>
+        <li><b>This table shows version 2.7 only.</b> The replay, matrix and score tile at the top of the page show one recorded version 2.6 run; the two versions are not mixed in either place.</li>
       </ul>
     </div>
   </section>
@@ -806,7 +805,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.8 · 2026-11-12
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.9 · 2026-11-12
   </footer>
 </main>
 
@@ -1192,7 +1191,7 @@ function renderFlowBasis() {
         <p><b>Rows.</b> The ${d.n_rows} rows (${d.n_pos} anomalies) were split into ${d.split.train.n} training, ${d.split.val.n} validation and ${d.split.test.n} test rows (${d.split.train.pos}, ${d.split.val.pos} and ${d.split.test.pos} anomalies). Only the ${F.n} test rows are replayed. Test average precision of this recording: ${d.recorded_test_ap.toFixed(3)}, against a test base rate of ${(F.testPos / F.n).toFixed(3)}.</p>
         <p><b>Operating point (same rule for every dataset).</b> On the validation rows the model flags the same share of rows as the dataset's anomaly base rate: ${(F.baseRate * 100).toFixed(2)}% of ${F.nVal} rows, rounded, at least one, gives ${F.nFlagVal} ${F.nFlagVal === 1 ? 'row' : 'rows'}. The threshold is the combined score of the lowest flagged validation row: <b>${F.threshold.toFixed(4)}</b>. A test row is flagged when its combined score is at or above it.</p>
         <p><b>Scores.</b> ${d.phase3_in_score ? 'The decision uses the recorded combined score of all three phases: each phase score standardised over the rows, then weighted with the tuned weights.' : 'The decision uses the recorded combined score of Phases 1 and 2.'} Phase 1 passed ${d.n_shortlist} of the ${d.n_rows} rows on to Phases 2 and 3 (${F.reached.s2} of them in the test rows); the other rows have no Phase 2 or 3 score${d.phase3_in_score ? ' and enter the combined score with zero for those phases' : ''}.${d.phase3_in_score ? '' : ' In this recording the Phase 3 score was recorded for those rows but did not enter the combined score.'}${d.val.some((v) => v[2] != null) ? ' Equal combined scores are ordered as the model ordered them.' : ''}</p>
-        <p class="caution"><b>How to read this against the score above.</b> This recorded version 2.6 model scores ${d.recorded_test_ap.toFixed(3)} on these test rows against a chance level of ${(F.testPos / F.n).toFixed(3)}: ${d.recorded_test_ap - F.testPos / F.n < 0.1 ? 'close to chance' : 'clearly above chance'}. Of ${F.testPos} test anomalies it catches ${F.cm.caught} and misses ${F.cm.missed}, with ${F.cm.false_alarm} false ${F.cm.false_alarm === 1 ? 'alarm' : 'alarms'}. ${hasNum(((RESULTS.datasets || {})[CURRENT_KEY] || {}).best_validation) ? "The best-so-far score in the tile above is a validation score of a different model (version 2.7, tuning still running) on different rows, so the two are not comparable. Version 2.7 has no test result yet." : "Version 2.7, still tuning, has no score for this dataset yet."}</p>
+        <p class="caution"><b>How to read this.</b> This recorded version 2.6 model scores ${d.recorded_test_ap.toFixed(3)} on these test rows against a chance level of ${(F.testPos / F.n).toFixed(3)}: ${d.recorded_test_ap - F.testPos / F.n < 0.1 ? 'close to chance' : 'clearly above chance'}. Of ${F.testPos} test anomalies it catches ${F.cm.caught} and misses ${F.cm.missed}, with ${F.cm.false_alarm} false ${F.cm.false_alarm === 1 ? 'alarm' : 'alarms'}. The tile above shows this same run. The new version 2.7 is still tuning; its validation scores are in the results table below and it has no test result yet.</p>
         <p class="caution">With ${d.split.val.pos} validation ${d.split.val.pos === 1 ? 'anomaly' : 'anomalies'} and ${d.split.test.pos} test anomalies this shows real recorded decisions, not a reliable detection rate.</p>
       </div>
       <div class="src-cm">
@@ -1350,7 +1349,7 @@ function renderResults() {
       <td>${finished}</td>
       <td>${counted}</td>
       <td>${r.last_update || naSpan}</td>
-      <td>${earlier}</td>`;
+`;
     body.appendChild(tr);
   });
   const sub = document.createElement('tr');
@@ -1358,7 +1357,7 @@ function renderResults() {
       <td class="name"><a href="#subsea-section">Marlinks-NS: ships over a subsea cable</a><span class="small env">Subsea</span><span class="small">Preliminary · public dataset · separate short analysis, not one of the tuning studies above</span></td>
       <td>${naSpan}</td>
       <td><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td>
-      <td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td>`;
+      <td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td>`;
   body.appendChild(sub);
 }
 function renderBestTile() {
@@ -1366,14 +1365,25 @@ function renderBestTile() {
   const sub = document.getElementById('kpi-best-sub');
   const r = (RESULTS.datasets || {})[CURRENT_KEY] || {};
   const baseFrac = hasNum(r.base_rate_pct) ? r.base_rate_pct / 100 : null;
+  const F = FLOW[CURRENT_KEY], ttl = document.getElementById('kpi-best-title');
+  // One view, one model: where a recorded run is replayed, the tile shows that
+  // same run's test score. Version 2.7 tuning scores live in the results table.
+  if (F && F.status === 'recorded') {
+    ttl.textContent = 'Test score of the replayed model';
+    el.className = 'value';
+    el.innerHTML = `${F.d.recorded_test_ap.toFixed(3)}<span class="of"> vs chance ${(F.testPos / F.n).toFixed(3)}</span>`;
+    sub.textContent = `Version 2.6 setting A, repeat 1 · average precision on its ${F.n} test rows · the same run as the replay and matrix below`;
+    return;
+  }
+  ttl.textContent = 'Version 2.7 · best-so-far validation score';
   if (hasNum(r.best_validation) && MASTER[CURRENT_KEY].valAnomMax === 1) {
     el.className = 'value na';
     el.textContent = 'Not meaningful';
-    sub.textContent = `Version 2.7 tuning, still running · best ${r.best_validation.toFixed(3)} rests on 1 validation anomaly per repeat · not the model in the replay below`;
+    sub.textContent = `Version 2.7 tuning, still running · best ${r.best_validation.toFixed(3)} rests on 1 validation anomaly per repeat · the replay below shows rows by true label, no model decisions`;
   } else if (hasNum(r.best_validation)) {
     el.className = 'value';
     el.innerHTML = `${r.best_validation.toFixed(3)}<span class="of"> vs base rate ${baseFrac !== null ? baseFrac.toFixed(3) : NA}</span>`;
-    sub.textContent = `Version 2.7 tuning, still running · best so far on validation rows, not final · not the model in the replay below${MASTER[CURRENT_KEY].caution ? ' · ' + MASTER[CURRENT_KEY].caution : ''}`;
+    sub.textContent = `Version 2.7 tuning, still running · best so far on validation rows, not final · the replay below shows rows by true label, no model decisions${MASTER[CURRENT_KEY].caution ? ' · ' + MASTER[CURRENT_KEY].caution : ''}`;
   } else {
     el.className = 'value na';
     el.textContent = NA;
@@ -2044,7 +2054,7 @@ function applyDataset() {
   document.getElementById('kpi-eps-title').textContent = `${CURRENT.unit[0].toUpperCase()}${CURRENT.unit.slice(1)} / sec`;
   upperLabel.textContent = `${CURRENT.unit}/s`;
   const F = FLOW[CURRENT_KEY];
-  document.getElementById('pipeline-arch').textContent = `${CURRENT.label} · ${F.status === 'recorded' ? `recorded test rows and decisions of version 2.6 setting A, repeat 1 (test average precision ${F.d.recorded_test_ap.toFixed(3)} vs test base rate ${(F.testPos / F.n).toFixed(3)}) · not the version 2.7 tuning score above` : 'recorded rows by true label · model decisions ' + decisionNA(F).toLowerCase()} · quantum hardware step not yet run`;
+  document.getElementById('pipeline-arch').textContent = `${CURRENT.label} · ${F.status === 'recorded' ? `recorded test rows and decisions of version 2.6 setting A, repeat 1 (test average precision ${F.d.recorded_test_ap.toFixed(3)} vs test base rate ${(F.testPos / F.n).toFixed(3)}) · the same run as the score tile above` : 'recorded rows by true label · model decisions ' + decisionNA(F).toLowerCase()} · quantum hardware step not yet run`;
   document.querySelectorAll('.only-recorded').forEach((el) => { el.style.display = F.status === 'recorded' ? '' : 'none'; });
   document.querySelectorAll('.only-sample').forEach((el) => { el.style.display = F.status === 'recorded' ? 'none' : ''; });
   overlay.classList.remove('open');
