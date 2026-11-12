@@ -68,6 +68,13 @@
   .datadesc dt { color: var(--muted); }
   .datadesc dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
   @media (max-width: 560px) { .datadesc dl { grid-template-columns: 1fr; } .datadesc dd { margin-bottom: 4px; } }
+  .dd-sum { margin: 0 0 10px; font-size: 13px; color: var(--ink); }
+  .cls-list { margin: 0; padding-left: 22px; }
+  .cls-list li { margin: 2px 0; }
+  #subsea-top { display: none; }
+  body.subsea-mode header .controls, body.subsea-mode header .live { visibility: hidden; }
+  body.subsea-mode #subsea-top { display: grid; }
+  body.subsea-mode main > *:not(#ds-desc):not(#subsea-top):not(#subsea-section):not(#anomaly-types-section):not(#explainer-section):not(footer) { display: none !important; }
 
   .grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
   .panel {
@@ -363,7 +370,7 @@
           <option value="fibre_otdr_event">OTDR Event Classes (trace segments) · route type not stated</option>
         </optgroup>
         <optgroup label="Subsea (preliminary)">
-          <option value="subsea_marlinks">Ships over a subsea cable (DAS, Marlinks-NS) · Subsea · opens its section</option>
+          <option value="subsea_marlinks">Ships over a subsea cable (DAS, Marlinks-NS) · Subsea · preliminary</option>
         </optgroup>
       </select>
       <span id="ds-tag" class="ds-tag fibre">FIBRE</span>
@@ -384,6 +391,29 @@
 
 <main>
   <div class="banner datadesc" id="ds-desc" aria-live="polite"></div>
+
+  <div class="grid" id="subsea-top" style="margin-bottom: 14px;">
+    <div class="panel kpi span3">
+      <h2>Ship windows</h2>
+      <div class="value na" id="ss-k-share">Analysis running</div>
+      <div class="sub">Share of 10-second windows with a ship within 1,000 m · from tonight's data check</div>
+    </div>
+    <div class="panel kpi span3">
+      <h2>QAD 2.7.9 <span class="demo-chip">Preliminary</span></h2>
+      <div class="value na" id="ss-k-v9">Analysis running</div>
+      <div class="sub" id="ss-k-v9-sub">Production version · own short tune · score on the 3 held-out days</div>
+    </div>
+    <div class="panel kpi span3">
+      <h2>QAD 2.7.10 <span class="demo-chip">Preliminary</span></h2>
+      <div class="value na" id="ss-k-v10">Analysis running</div>
+      <div class="sub" id="ss-k-v10-sub">Release candidate · own short tune · score on the 3 held-out days</div>
+    </div>
+    <div class="panel kpi span3">
+      <h2>Status</h2>
+      <div class="value na">Running on GenomeDK</div>
+      <div class="sub">Results added on 13 November before 08:55</div>
+    </div>
+  </div>
 
   <div class="grid" style="margin-bottom: 14px;">
     <div class="panel kpi span3">
@@ -552,7 +582,7 @@
       <h2 class="big">Subsea: ships over a seabed cable</h2>
       <span class="section-meta"><span class="nm">Preliminary</span> · public dataset Marlinks-NS (Zenodo 15611778, CC BY 4.0) · not GlobalConnect data</span>
     </div>
-    <p class="lead">Distributed Acoustic Sensing (DAS) on a 28 km telecom cable on the seabed off Zeebrugge, Belgium. A 2.55 km stretch with 250 sensing points, about 10 m apart, was recorded continuously for 10 days (16–25 June 2023). The recording is cut into 74,771 windows of 10 seconds. Each window is labelled from ship-tracking (AIS) data with the distance to the nearest vessel and that vessel's length and type.</p>
+    <p class="lead">DAS on a 28 km seabed telecom cable off Zeebrugge, Belgium, 16–25 June 2023. Choose "Ships over a subsea cable" in the dataset menu at the top for the full data description and the numbered anomaly classes.</p>
     <div class="guide" style="margin-top:0">
       <h3>What counts as an anomaly</h3>
       <ul>
@@ -602,16 +632,16 @@
     <p class="lead">Each box is one family of anomaly that matters for a fibre network. It lists the event types in our datasets that fall under it, how they were sensed, and whether the anomalies are real recordings or simulated. The last box lists what no dataset here covers yet.</p>
     <div class="atype-grid">
       <div class="atype">
-        <h3>Works and traffic near the route</h3>
-        <p class="ex">Accidental activity close to a buried cable.</p>
+        <h3>1 · Works and activity near the route</h3>
+        <p class="ex">Activity close to a buried cable, accidental or staged.</p>
         <ul>
-          <li><b>Fibre Intrusion:</b> dig, walk</li>
+          <li><b>Fibre Intrusion:</b> dig, walk, pouring water on the ground above the cable</li>
           <li><b>Acoustic Sensing: Field Events:</b> construction, car, running, walk, longboard</li>
         </ul>
         <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
       </div>
       <div class="atype">
-        <h3>Direct contact with cable plant</h3>
+        <h3>2 · Direct contact with cable plant</h3>
         <p class="ex">Someone touching, handling or opening the cable or its enclosures.</p>
         <ul>
           <li><b>Fibre Intrusion:</b> knock, shake</li>
@@ -620,7 +650,7 @@
         <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
       </div>
       <div class="atype">
-        <h3>Sound aimed at the fibre</h3>
+        <h3>3 · Sound aimed at the fibre</h3>
         <p class="ex">Acoustic sources picked up by the fibre acting as a long microphone.</p>
         <ul>
           <li><b>Acoustic Sensing: Audible Signals:</b> frequency sweeps and STIPA speech test signal at three levels</li>
@@ -628,15 +658,7 @@
         <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> DAS, audible band</p>
       </div>
       <div class="atype">
-        <h3>Environment</h3>
-        <p class="ex">Natural effects on the cable route.</p>
-        <ul>
-          <li><b>Fibre Intrusion:</b> water</li>
-        </ul>
-        <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR vibration</p>
-      </div>
-      <div class="atype">
-        <h3>Fibre and link faults</h3>
+        <h3>4 · Fibre and link faults</h3>
         <p class="ex">Faults in the fibre itself, seen in the light it reflects.</p>
         <ul>
           <li><b>Fibre Health:</b> reflective fault <span class="tag sim">Simulated</span></li>
@@ -645,7 +667,7 @@
         <p class="meta"><span class="tag env">Terrestrial</span> Fibre Health · <span class="tag env">Route type not stated</span> OTDR Event Classes · OTDR traces</p>
       </div>
       <div class="atype">
-        <h3>Ships over a subsea cable</h3>
+        <h3>5 · Ships over a subsea cable</h3>
         <p class="ex">A vessel within 1 km of a seabed cable, a proxy for anchor and fishing-gear risk.</p>
         <ul>
           <li><b>Marlinks-NS (public, CC BY 4.0):</b> 28 km seabed cable off Zeebrugge, 10 days in June 2023, labelled from ship-tracking (AIS) data with vessel length and type</li>
@@ -757,7 +779,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.5 · 2026-11-12
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.6 · 2026-11-12
   </footer>
 </main>
 
@@ -2052,20 +2074,113 @@ function renderDataDesc() {
     ['Size', `${nf(m.total_rows)} rows: ${nf(m.positives)} anomalies (${Number(m.anom_rate_pct).toFixed(1)}%) and ${nf(m.total_rows - m.positives)} normal rows.`],
     ['Features', `${m.feature_cols.length}: ${esc(N.features || 'numerical features')}.${N.excluded ? ' ' + esc(N.excluded) : ''}`],
     ['Normal rows', esc(normals.join('; ')) + '.'],
-    ['Anomaly classes', esc(anoms.join('; ')) + '.'],
+    ['Anomaly classes', classList(CURRENT_KEY, m.anom_classes || [])],
   ];
   rows.splice(1, 0, ['Setting', esc(M.env) + '.']);
+  if (CLASS_DESC[CURRENT_KEY] && CLASS_DESC[CURRENT_KEY].__note) rows.push(['About the classes', esc(CLASS_DESC[CURRENT_KEY].__note)]);
   if (M.caution) rows.push(['Note', esc(M.caution)]);
-  box.innerHTML = `<h3>Data: ${esc(M.label)}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+  box.innerHTML = `<h3>Data: ${esc(M.label)}</h3>${DATA_SUMMARY[CURRENT_KEY] ? `<p class="dd-sum">${esc(DATA_SUMMARY[CURRENT_KEY])}</p>` : ''}<dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+}
+// Where, when and how each dataset was recorded: only what the sources state.
+const DATA_SUMMARY = {
+  fibre_intrusion: 'Phase-sensitive OTDR (Φ-OTDR) on two test fibres, 5.1 km and 10.1 km long. Ten members of a university research team in Beijing, China, staged five activities at the far end of each fibre (5.00–5.05 km and 10.00–10.05 km) at different times; background was recorded with no activity. Each record covers 0.8–1.25 seconds at 12 neighbouring points 10 m apart. Published in June 2022. Here the activity records were reduced to 5% of the data, so events stay rare as in real monitoring.',
+  fibre_health: 'OTDR traces of fibre links. 180 real traces from one instrument, all without faults, dated 1 June 2022 in the source, taken at two wavelengths with several pulse widths and acquisition times. 192 simulated traces of a passive optical network with a 1×8 splitter, from 2023, some with a reflective fault added. Each trace shows how the reflected light changes with distance along the fibre. Where the real traces were measured is not stated in the source.',
+  fibre_das_audible: 'Distributed Acoustic Sensing (DAS) used as a long microphone. Acoustic test signals were played near the fibre and recorded with two DAS instruments on the same fibre, at three cable lengths, 20,000 samples per second at 110 points; 10 evenly spaced points are used here. Each row is a 1-second segment. The site, and whether it is indoor or outdoor, is not stated in our records.',
+  fibre_das_event: 'Distributed Acoustic Sensing (DAS) on a fibre route during everyday activity, recorded in 2023 (for example a fence recording on 17 April 2023, Central European time). The dataset\'s authors marked the moments when eight types of event happened, from cars and construction to people walking; regular conditions were recorded in between. Each row is a short window from one point on the cable. The exact site, and whether it is urban or rural, is not stated in our records.',
+  fibre_otdr_event: 'Short OTDR trace segments: 30 points of reflected light along one stretch of fibre, plus a signal-to-noise figure, 125,832 segments in total. Most segments contain an event in one of seven classes. The source does not state where the measurements were taken or what kind of network they come from.',
+};
+// What each recorded anomaly class is. Numbered in the order the dataset lists them.
+const CLASS_DESC = {
+  fibre_intrusion: {
+    '02_dig': 'Digging in the soil above or beside the buried cable. The pattern behind excavation damage, the most common cause of cable cuts on land.',
+    '03_knock': 'Knocking on the ground or the cable cover: short, sharp impacts.',
+    '04_water': 'Pouring water onto the ground above the cable. A staged test activity that gives a weak, spread-out vibration.',
+    '05_shake': 'Shaking the cable or its surroundings by hand: direct mechanical handling.',
+    '06_walk': 'A person walking above the cable: regular footstep impacts. Usually harmless, but must be told apart from digging.',
+    __note: 'Recorded on a buried test fibre. All five activities count as one anomaly class in the score; the replay and inspection pane show which activity each row is.',
+  },
+  fibre_health: {
+    sim_rndreflect: 'A reflective fault, such as a dirty or loose connector, an air gap or a clean break, inserted at a random point of a simulated passive optical network trace with a 1×8 splitter.',
+    __note: 'Every anomaly is simulated; the real traces from the instrument are all fault-free.',
+  },
+  fibre_das_audible: {
+    cont_freq: 'A tone that glides continuously across the audible range.',
+    stepped_freq_normal: 'A tone that steps from one frequency to the next, at normal loudness.',
+    stepped_freq_raised: 'The same stepped tone, louder than normal.',
+    stepped_freq_relaxed: 'The same stepped tone, quieter than normal.',
+    stipa_normal: 'STIPA, a standard speech-like test signal, at normal loudness. A stand-in for people speaking near the cable.',
+    stipa_raised: 'The STIPA speech test signal, louder than normal.',
+    stipa_relaxed: 'The STIPA speech test signal, quieter than normal.',
+    __note: 'Test signals played from a loudspeaker near the fibre. Only 14 anomalies exist in total.',
+  },
+  fibre_das_event: {
+    car: 'A car driving past the cable route.',
+    construction: 'Construction work near the route.',
+    fence: 'Activity at a fence along the route.',
+    longboard: 'A longboard rolling along the route: continuous rolling vibration.',
+    manipulation: 'Handling of the cable itself.',
+    openclose: 'Opening and closing near the route, such as a door or an enclosure.',
+    running: 'A person running near the route.',
+    walk: 'A person walking near the route.',
+    __note: 'Exactly one example of each of the eight types exists, so each type is a single row.',
+  },
+  fibre_otdr_event: {
+    __note: 'The source numbers its seven event classes 1–7. Together they cover reflective, non-reflective and merged events and fault sub-categories; the source does not name the physical event behind each number, so this page does not either. Class 0 (no event) is normal.',
+  },
+};
+function classList(key, classes) {
+  const D = CLASS_DESC[key] || {};
+  return `<ol class="cls-list">${classes.map((c) => `<li><b>${esc(classText(c))}</b>${D[c] ? ' — ' + esc(D[c]) : ''}</li>`).join('')}</ol>`;
+}
+// Subsea (Marlinks-NS): no recorded per-row model decisions exist yet, so the
+// replay panels do not apply. The page switches to the subsea view instead.
+const SUBSEA = {
+  label: 'Ships over a subsea cable (Marlinks-NS)',
+  rows: [
+    ['Source', 'Public research dataset Marlinks-NS (Zenodo 15611778, licence CC BY 4.0). Not GlobalConnect data.'],
+    ['Setting', 'Subsea. A 28 km telecom cable on the seabed off Zeebrugge, Belgium, in one of the busiest shipping areas in Europe.'],
+    ['How it was measured', 'Distributed Acoustic Sensing (DAS) with an OptoDAS interrogator, 16–25 June 2023, continuously. A 2.55 km stretch of the cable, 14.7–17.3 km from the interrogator, with 250 sensing points about 10 m apart.'],
+    ['One row', 'One 10-second window: the vibration energy at each of the 250 sensing points in the 4–98 Hz band (49–51 Hz removed).'],
+    ['Size', '74,771 windows. The share of windows with a ship within 1,000 m is measured in tonight\'s data check.'],
+    ['Normal rows', 'No ship within 1,000 m of the cable: sea and seabed noise, and distant shipping.'],
+    ['Anomaly', 'A ship within 1,000 m of the cable, the distance used by the dataset\'s own study. Ships over a subsea cable are the main source of anchor and fishing-gear damage.'],
+  ],
+  classesType: [
+    ['Cargo ships', 'Container ships and bulk carriers. Large, with slow-turning propellers: loud, low-pitched tones, picked up from far away.'],
+    ['Tankers', 'Oil, gas and chemical tankers. Large and heavy, with sound similar to cargo ships.'],
+    ['Passenger ships and ferries', 'Fast and powerful, often on fixed routes, so they cross the same cable stretch repeatedly.'],
+    ['Fishing vessels', 'Small to medium. Trawling gear can touch the seabed, which makes them a direct risk to a subsea cable.'],
+    ['Tugs, pilots and service vessels', 'Small, powerful and manoeuvring: higher-pitched, irregular sound.'],
+    ['Sailing and pleasure craft', 'Small and quiet; only picked up close to the cable, if at all.'],
+    ['Other or not reported', 'Ship types that fit none of the groups above, or that the AIS message does not report.'],
+  ],
+  classesLength: [
+    ['Under 50 m', 'Small boats: weak signal, only picked up close by.'],
+    ['50–150 m', 'Medium vessels such as coasters, fishing and service vessels.'],
+    ['150–250 m', 'Large cargo ships, tankers and ferries.'],
+    ['Over 250 m', 'The largest container ships and tankers: the loudest and lowest-pitched.'],
+  ],
+  note: 'The ship type and length come from AIS ship-tracking data. Groups are listed as in AIS reporting; the counts per group in this dataset, and how often each is detected, are added with the results. Ships that do not send AIS are not labelled.',
+};
+function renderSubseaDesc() {
+  const box = document.getElementById('ds-desc');
+  const ol = (list) => `<ol class="cls-list">${list.map(([t, d]) => `<li><b>${esc(t)}</b> — ${esc(d)}</li>`).join('')}</ol>`;
+  const rows = SUBSEA.rows.map(([k, v]) => [k, esc(v)]);
+  rows.push(['Anomaly classes by ship type', ol(SUBSEA.classesType)]);
+  rows.push(['Anomaly classes by ship length', ol(SUBSEA.classesLength)]);
+  rows.push(['About the classes', esc(SUBSEA.note)]);
+  rows.push(['Note', 'Preliminary. No live replay: there are no recorded model decisions for this dataset yet. The results of QAD 2.7.9 and QAD 2.7.10 are shown below.']);
+  box.innerHTML = `<h3>Data: ${esc(SUBSEA.label)} <span class="nm">Preliminary</span></h3><p class="dd-sum">Distributed Acoustic Sensing (DAS) on a 28 km telecom cable on the seabed off Zeebrugge, Belgium. A 2.55 km stretch with 250 sensing points, about 10 m apart, was recorded continuously for 10 days (16–25 June 2023). The recording is cut into 74,771 windows of 10 seconds. Each window is labelled from ship-tracking (AIS) data with the distance to the nearest vessel and that vessel's length and type.</p><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
 }
 document.getElementById('ds-select').addEventListener('change',(e)=>{
   if (e.target.value === 'subsea_marlinks') {
-    // No recorded model run exists yet for the subsea data, so there is
-    // nothing to replay: jump to its own section and keep the replay as it was.
-    e.target.value = CURRENT_KEY;
-    document.getElementById('subsea-section').scrollIntoView({ behavior: 'smooth' });
+    document.body.classList.add('subsea-mode');
+    document.getElementById('ds-tag').textContent = 'SUBSEA';
+    renderSubseaDesc();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
+  document.body.classList.remove('subsea-mode');
   CURRENT_KEY = e.target.value;
   applyDataset();
   renderDataDesc();
