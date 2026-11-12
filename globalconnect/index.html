@@ -141,6 +141,7 @@
   .atype h3 { margin: 0 0 4px; font-size: 14px; color: var(--ink); }
   .atype p.ex { margin: 0 0 8px; color: var(--muted); }
   .atype ul { margin: 0 0 8px; padding-left: 18px; }
+  .atype p.ds { margin: 8px 0 2px; font-weight: 600; color: var(--accent); font-size: 12px; }
   .atype li { margin: 3px 0; }
   .atype p.meta { margin: 0; color: var(--muted); font-size: 11.5px; }
   .atype .tag { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 4px; margin-right: 4px; }
@@ -634,43 +635,69 @@
       <div class="atype">
         <h3>1 · Works and activity near the route</h3>
         <p class="ex">Activity close to a buried cable, accidental or staged.</p>
+        <p class="ds">Fibre Intrusion</p>
         <ul>
-          <li><b>Fibre Intrusion:</b> dig, walk, pouring water on the ground above the cable</li>
-          <li><b>Acoustic Sensing: Field Events:</b> construction, car, running, walk, longboard</li>
+          <li><b>Dig</b> — digging in the soil above or beside the buried cable; the pattern behind excavation damage, the most common cause of cable cuts on land.</li>
+          <li><b>Walk</b> — a person walking above the cable: regular footstep impacts, usually harmless but easy to confuse with digging.</li>
+          <li><b>Water</b> — water poured onto the ground above the cable: a weak, spread-out vibration.</li>
+        </ul>
+        <p class="ds">Acoustic Sensing: Field Events</p>
+        <ul>
+          <li><b>Construction</b> — construction work near the route.</li>
+          <li><b>Car</b> — a car driving past the route.</li>
+          <li><b>Running</b> and <b>walk</b> — people running or walking near the route.</li>
+          <li><b>Longboard</b> — a longboard rolling along the route: continuous rolling vibration.</li>
         </ul>
         <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
       </div>
       <div class="atype">
         <h3>2 · Direct contact with cable plant</h3>
         <p class="ex">Someone touching, handling or opening the cable or its enclosures.</p>
+        <p class="ds">Fibre Intrusion</p>
         <ul>
-          <li><b>Fibre Intrusion:</b> knock, shake</li>
-          <li><b>Acoustic Sensing: Field Events:</b> manipulation, open/close, fence</li>
+          <li><b>Knock</b> — knocking on the ground or the cable cover: short, sharp impacts.</li>
+          <li><b>Shake</b> — shaking the cable or its surroundings by hand: direct mechanical handling.</li>
+        </ul>
+        <p class="ds">Acoustic Sensing: Field Events</p>
+        <ul>
+          <li><b>Manipulation</b> — handling of the cable itself.</li>
+          <li><b>Open/close</b> — opening and closing near the route, such as a door or an enclosure.</li>
+          <li><b>Fence</b> — activity at a fence along the route.</li>
         </ul>
         <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
       </div>
       <div class="atype">
         <h3>3 · Sound aimed at the fibre</h3>
         <p class="ex">Acoustic sources picked up by the fibre acting as a long microphone.</p>
+        <p class="ds">Acoustic Sensing: Audible Signals</p>
         <ul>
-          <li><b>Acoustic Sensing: Audible Signals:</b> frequency sweeps and STIPA speech test signal at three levels</li>
+          <li><b>Continuous frequency sweep</b> — a tone gliding across the audible range.</li>
+          <li><b>Stepped frequency sweep</b> — a tone stepping from one frequency to the next, at normal, raised and quieter levels.</li>
+          <li><b>Speech test signal (STIPA)</b> — a standard speech-like signal, a stand-in for people talking near the cable, at the same three levels.</li>
         </ul>
         <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> DAS, audible band</p>
       </div>
       <div class="atype">
         <h3>4 · Fibre and link faults</h3>
         <p class="ex">Faults in the fibre itself, seen in the light it reflects.</p>
+        <p class="ds">Fibre Health <span class="tag sim">Simulated</span></p>
         <ul>
-          <li><b>Fibre Health:</b> reflective fault <span class="tag sim">Simulated</span></li>
-          <li><b>OTDR Event Classes:</b> reflective, non-reflective and merged events, and fault sub-categories <span class="tag real">Real</span></li>
+          <li><b>Reflective fault</b> — a sharp reflection at one point, as from a dirty or loose connector, an air gap or a clean break, added to a simulated access-network trace.</li>
+        </ul>
+        <p class="ds">OTDR Event Classes <span class="tag real">Real</span></p>
+        <ul>
+          <li><b>Seven event classes</b> — reflective events (connectors, breaks), non-reflective events (splices, bends), events lying so close together they merge, and fault sub-categories. The source numbers the classes without naming each one.</li>
         </ul>
         <p class="meta"><span class="tag env">Terrestrial</span> Fibre Health · <span class="tag env">Route type not stated</span> OTDR Event Classes · OTDR traces</p>
       </div>
       <div class="atype">
         <h3>5 · Ships over a subsea cable</h3>
         <p class="ex">A vessel within 1 km of a seabed cable, a proxy for anchor and fishing-gear risk.</p>
+        <p class="ds">Marlinks-NS (public, CC BY 4.0)</p>
         <ul>
-          <li><b>Marlinks-NS (public, CC BY 4.0):</b> 28 km seabed cable off Zeebrugge, 10 days in June 2023, labelled from ship-tracking (AIS) data with vessel length and type</li>
+          <li><b>Ship within 1,000 m</b> — engine and propeller tones picked up by a 28 km seabed cable off Zeebrugge, over 10 days in June 2023.</li>
+          <li><b>By ship type</b> — cargo ships, tankers, passenger ships, fishing vessels, tugs and service vessels, sailing and pleasure craft, from ship-tracking (AIS) data.</li>
+          <li><b>By ship length</b> — under 50 m, 50–150 m, 150–250 m and over 250 m: larger ships are louder and heard from further away.</li>
         </ul>
         <p class="meta"><span class="tag env">Subsea</span><span class="tag pre">Preliminary</span> DAS on a subsea cable · <a href="#subsea-section">see its section</a></p>
       </div>
@@ -779,7 +806,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.6 · 2026-11-12
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.7 · 2026-11-12
   </footer>
 </main>
 
@@ -1368,7 +1395,7 @@ const DATASET_CARDS = [
     how:'Phase-sensitive OTDR: laser pulses sent down the fibre pick up vibration along it. Each record covers 12 neighbouring spots along the cable.',
     row:'One record. Six figures per position (level, spread, range, energy and two frequency measures) give 72 numbers.',
     anom:'Any activity event. Background records are normal.',
-    types:'Dig, knock, water, shake, walk.',
+    types:'Digging in the soil above the cable; knocking on the ground or cable cover; water poured onto the ground above the cable; shaking the cable by hand; a person walking above the cable.',
     note:'Event rows were reduced to about 5% of the data, so events stay rare as they are in real monitoring.',
     why:'Early warning of digging, knocking or other activity near a cable, before it causes damage.' },
   { key:'fibre_health',
@@ -1376,7 +1403,7 @@ const DATASET_CARDS = [
     how:'180 traces from a real instrument, all without faults (two wavelengths, several pulse widths and acquisition times), and 192 simulated traces of a passive optical network with a 1×8 splitter.',
     row:'One trace, reduced to 102 numbers: statistics of the whole trace and of three sections, frequency content, and 50 evenly spaced points.',
     anom:'A simulated reflective fault added to an otherwise clean trace. Real traces and clean simulated traces are normal.',
-    types:'Random reflective fault.',
+    types:'A reflective fault, as from a dirty or loose connector, an air gap or a clean break, added at a random point of a simulated trace.',
     note:'All anomalies are simulated and all real traces are normal. Read scores here with that in mind.',
     why:'Faster detection of reflective faults from traces that operators already take.' },
   { key:'fibre_das_audible',
@@ -1392,7 +1419,7 @@ const DATASET_CARDS = [
     how:'Distributed Acoustic Sensing. One file per event type is taken from a larger public collection.',
     row:'A short vibration recording from one spot on the cable, taken at a moment the dataset\'s authors marked. Its frequency content gives 64 numbers: the signal level in 54 frequency bands, from low to high; the last 10 numbers are always zero.',
     anom:'Any of the eight event types. Regular conditions are normal.',
-    types:'Car, construction, fence, longboard, manipulation, open/close, running, walk.',
+    types:'A car driving past; construction work; activity at a fence; a longboard rolling along the route; handling of the cable; opening and closing a door or enclosure; a person running; a person walking.',
     note:'Only 8 anomalies exist in total, one per event type, and at most 1 falls in the validation part of each repeat.',
     why:'Telling real activity near a route apart from ordinary signal is the core question for fibre route monitoring.' },
   { key:'fibre_otdr_event',
