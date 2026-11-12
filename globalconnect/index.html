@@ -118,6 +118,18 @@
   .phase-role .what { color: var(--muted); font-size: 11.5px; display: block; }
 
   .tbl-wrap { overflow-x: auto; }
+  .atype-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .atype { background: var(--panel2); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; font-size: 12.5px; }
+  .atype.gap { border-style: dashed; background: transparent; }
+  .atype h3 { margin: 0 0 4px; font-size: 14px; color: var(--ink); }
+  .atype p.ex { margin: 0 0 8px; color: var(--muted); }
+  .atype ul { margin: 0 0 8px; padding-left: 18px; }
+  .atype li { margin: 3px 0; }
+  .atype p.meta { margin: 0; color: var(--muted); font-size: 11.5px; }
+  .atype .tag { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 4px; margin-right: 4px; }
+  .atype .tag.real { background: var(--good-soft); color: var(--good); }
+  .atype .tag.sim { background: var(--amber-soft); color: var(--amber); }
+  .atype .tag.pre { background: var(--accent-soft); color: var(--accent); }
   .queue { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   .queue th { text-align: left; color: var(--muted); font-weight: 500;
     padding: 6px 8px; border-bottom: 1px solid var(--rule); font-size: 10.5px;
@@ -522,6 +534,77 @@
     </div>
   </section>
 
+  <section class="section" id="anomaly-types-section">
+    <div class="section-head">
+      <h2 class="big">Anomaly types</h2>
+      <span class="section-meta">What each dataset covers · public research data, not GlobalConnect data</span>
+    </div>
+    <p class="lead">Each box is one family of anomaly that matters for a fibre network. It lists the event types in our datasets that fall under it, how they were sensed, and whether the anomalies are real recordings or simulated. The last box lists what no dataset here covers yet.</p>
+    <div class="atype-grid">
+      <div class="atype">
+        <h3>Works and traffic near the route</h3>
+        <p class="ex">Accidental activity close to a buried cable.</p>
+        <ul>
+          <li><b>Fibre Intrusion:</b> dig, walk</li>
+          <li><b>Acoustic Sensing: Field Events:</b> construction, car, running, walk, longboard</li>
+        </ul>
+        <p class="meta"><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
+      </div>
+      <div class="atype">
+        <h3>Direct contact with cable plant</h3>
+        <p class="ex">Someone touching, handling or opening the cable or its enclosures.</p>
+        <ul>
+          <li><b>Fibre Intrusion:</b> knock, shake</li>
+          <li><b>Acoustic Sensing: Field Events:</b> manipulation, open/close, fence</li>
+        </ul>
+        <p class="meta"><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
+      </div>
+      <div class="atype">
+        <h3>Sound aimed at the fibre</h3>
+        <p class="ex">Acoustic sources picked up by the fibre acting as a long microphone.</p>
+        <ul>
+          <li><b>Acoustic Sensing: Audible Signals:</b> frequency sweeps and STIPA speech test signal at three levels</li>
+        </ul>
+        <p class="meta"><span class="tag real">Real</span> DAS, audible band</p>
+      </div>
+      <div class="atype">
+        <h3>Environment</h3>
+        <p class="ex">Natural effects on the cable route.</p>
+        <ul>
+          <li><b>Fibre Intrusion:</b> water</li>
+        </ul>
+        <p class="meta"><span class="tag real">Real</span> Φ-OTDR vibration</p>
+      </div>
+      <div class="atype">
+        <h3>Fibre and link faults</h3>
+        <p class="ex">Faults in the fibre itself, seen in the light it reflects.</p>
+        <ul>
+          <li><b>Fibre Health:</b> reflective fault <span class="tag sim">Simulated</span></li>
+          <li><b>OTDR Event Classes:</b> reflective, non-reflective and merged events, and fault sub-categories <span class="tag real">Real</span></li>
+        </ul>
+        <p class="meta">OTDR traces</p>
+      </div>
+      <div class="atype">
+        <h3>Ships over a subsea cable</h3>
+        <p class="ex">A vessel within 1 km of a seabed cable, a proxy for anchor and fishing-gear risk.</p>
+        <ul>
+          <li><b>Marlinks-NS (public, CC BY 4.0):</b> 28 km seabed cable off Zeebrugge, 10 days in June 2023, labelled from ship-tracking (AIS) data with vessel length and type</li>
+        </ul>
+        <p class="meta"><span class="tag pre">Preliminary</span> DAS on a subsea cable · first analysis running</p>
+      </div>
+      <div class="atype gap">
+        <h3>Not covered yet</h3>
+        <ul>
+          <li>Anchor drag or fishing gear actually striking a subsea cable</li>
+          <li>A cable cut or break recorded on a live link</li>
+          <li>Fibre tapping by bending the fibre</li>
+          <li>Slow degradation, such as ageing or rising splice loss</li>
+          <li>Polarisation-based sensing: a public subsea polarisation dataset is downloaded but not yet analysed</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <section class="section" id="phase4-section">
     <div class="section-head">
       <h2 class="big">Phase 4 — IBM QPU Validation</h2>
@@ -614,7 +697,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.3 · 2026-11-11
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.4 · 2026-11-12
   </footer>
 </main>
 
