@@ -118,6 +118,16 @@
   .phase-role .what { color: var(--muted); font-size: 11.5px; display: block; }
 
   .tbl-wrap { overflow-x: auto; }
+  .res-table td .small.env { color: var(--accent); }
+  .res-table a, .atype a { color: var(--accent); }
+  .res-table td .nm, .nm { color: var(--amber); font-size: 13px; font-weight: 600; }
+  .atype .tag.env { background: var(--chip); color: var(--ink); }
+  .ss-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .ss-step { flex: 1 1 150px; background: var(--panel2); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; font-size: 12.5px; }
+  .ss-step b { display: block; color: var(--accent); margin-bottom: 4px; }
+  .ss-step span { color: var(--muted); }
+  .ss-arrow { align-self: center; color: var(--muted); }
+  @media (max-width: 700px) { .ss-arrow { display: none; } }
   .atype-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
   .atype { background: var(--panel2); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; font-size: 12.5px; }
   .atype.gap { border-style: dashed; background: transparent; }
@@ -346,11 +356,14 @@
       <label for="ds-select">Dataset</label>
       <select id="ds-select">
         <optgroup label="Fibre sensing and monitoring">
-          <option value="fibre_intrusion">Fibre Intrusion (Φ-OTDR security events)</option>
-          <option value="fibre_health">Fibre Health (OTDR trace faults)</option>
-          <option value="fibre_das_audible">Acoustic Sensing: Audible Signals (DAS)</option>
-          <option value="fibre_das_event" selected>Acoustic Sensing: Field Events (DAS)</option>
-          <option value="fibre_otdr_event">OTDR Event Classes (trace segments)</option>
+          <option value="fibre_intrusion">Fibre Intrusion (Φ-OTDR security events) · Terrestrial</option>
+          <option value="fibre_health">Fibre Health (OTDR trace faults) · Terrestrial</option>
+          <option value="fibre_das_audible">Acoustic Sensing: Audible Signals (DAS) · Terrestrial</option>
+          <option value="fibre_das_event" selected>Acoustic Sensing: Field Events (DAS) · Terrestrial</option>
+          <option value="fibre_otdr_event">OTDR Event Classes (trace segments) · route type not stated</option>
+        </optgroup>
+        <optgroup label="Subsea (preliminary)">
+          <option value="subsea_marlinks">Ships over a subsea cable (DAS, Marlinks-NS) · Subsea · opens its section</option>
         </optgroup>
       </select>
       <span id="ds-tag" class="ds-tag fibre">FIBRE</span>
@@ -534,6 +547,53 @@
     </div>
   </section>
 
+  <section class="section" id="subsea-section">
+    <div class="section-head">
+      <h2 class="big">Subsea: ships over a seabed cable</h2>
+      <span class="section-meta"><span class="nm">Preliminary</span> · public dataset Marlinks-NS (Zenodo 15611778, CC BY 4.0) · not GlobalConnect data</span>
+    </div>
+    <p class="lead">Distributed Acoustic Sensing (DAS) on a 28 km telecom cable on the seabed off Zeebrugge, Belgium. A 2.55 km stretch with 250 sensing points, about 10 m apart, was recorded continuously for 10 days (16–25 June 2023). The recording is cut into 74,771 windows of 10 seconds. Each window is labelled from ship-tracking (AIS) data with the distance to the nearest vessel and that vessel's length and type.</p>
+    <div class="guide" style="margin-top:0">
+      <h3>What counts as an anomaly</h3>
+      <ul>
+        <li><b>Anomaly:</b> a 10-second window with a vessel within 1,000 m of the cable. Ship traffic over a subsea cable is the main source of anchor and fishing-gear damage.</li>
+        <li><b>What a ship looks like in the signal:</b> engine and propeller tones in the tens of Hz, strongest at the sensing points nearest the ship, moving along the cable as the ship passes. Large ships are louder and lower in pitch; small boats are weaker and only picked up close by.</li>
+        <li><b>Normal:</b> sea and seabed noise, and distant shipping.</li>
+      </ul>
+    </div>
+    <h3 style="margin:16px 0 8px; font-size:14px;">Flow of the analysis</h3>
+    <div class="ss-flow">
+      <div class="ss-step"><b>1 · Raw DAS windows</b><span>250 points × 10 s, 4–98 Hz</span></div>
+      <div class="ss-arrow">→</div>
+      <div class="ss-step"><b>2 · Features</b><span>signal energy per frequency band and cable section</span></div>
+      <div class="ss-arrow">→</div>
+      <div class="ss-step"><b>3 · Time split</b><span>16–20 June fit · 21–22 June validate · 23–25 June held out, never seen in tuning</span></div>
+      <div class="ss-arrow">→</div>
+      <div class="ss-step"><b>4 · Two separate tunings</b><span>QAD 2.7.9 and QAD 2.7.10 release candidate, each from default settings, short tune · classical methods with the same budget</span></div>
+      <div class="ss-arrow">→</div>
+      <div class="ss-step"><b>5 · One final scoring</b><span>on the held-out 3 days · overall and by ship size and type</span></div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:14px">
+      <table class="res-table" id="subsea-results">
+        <thead><tr><th>Model</th><th>Settings</th><th>ROC-AUC</th><th>Average precision (vs share of ship windows)</th><th>Ships caught at 1% false alarms</th><th>Ships caught at 5% false alarms</th></tr></thead>
+        <tbody>
+          <tr><td class="name">QAD 2.7.9</td><td>Default · short tune</td><td colspan="4"><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td></tr>
+          <tr><td class="name">QAD 2.7.10 release candidate</td><td>Default · short tune</td><td colspan="4"><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td></tr>
+          <tr><td class="name">Classical methods</td><td>Default · short tune</td><td colspan="4"><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="guide">
+      <h3>Read with care</h3>
+      <ul>
+        <li>Preliminary: a short tune on one public dataset, not a finished study.</li>
+        <li>Only ships that broadcast AIS are labelled. A nearby ship without AIS counts as normal.</li>
+        <li>The data contains ships passing, not anchor drags or cable damage.</li>
+        <li>The waters off Zeebrugge are among the busiest in Europe, so ships near the cable may not be rare. The share of ship windows is shown with the results.</li>
+      </ul>
+    </div>
+  </section>
+
   <section class="section" id="anomaly-types-section">
     <div class="section-head">
       <h2 class="big">Anomaly types</h2>
@@ -548,7 +608,7 @@
           <li><b>Fibre Intrusion:</b> dig, walk</li>
           <li><b>Acoustic Sensing: Field Events:</b> construction, car, running, walk, longboard</li>
         </ul>
-        <p class="meta"><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
+        <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
       </div>
       <div class="atype">
         <h3>Direct contact with cable plant</h3>
@@ -557,7 +617,7 @@
           <li><b>Fibre Intrusion:</b> knock, shake</li>
           <li><b>Acoustic Sensing: Field Events:</b> manipulation, open/close, fence</li>
         </ul>
-        <p class="meta"><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
+        <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR and DAS vibration</p>
       </div>
       <div class="atype">
         <h3>Sound aimed at the fibre</h3>
@@ -565,7 +625,7 @@
         <ul>
           <li><b>Acoustic Sensing: Audible Signals:</b> frequency sweeps and STIPA speech test signal at three levels</li>
         </ul>
-        <p class="meta"><span class="tag real">Real</span> DAS, audible band</p>
+        <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> DAS, audible band</p>
       </div>
       <div class="atype">
         <h3>Environment</h3>
@@ -573,7 +633,7 @@
         <ul>
           <li><b>Fibre Intrusion:</b> water</li>
         </ul>
-        <p class="meta"><span class="tag real">Real</span> Φ-OTDR vibration</p>
+        <p class="meta"><span class="tag env">Terrestrial</span><span class="tag real">Real</span> Φ-OTDR vibration</p>
       </div>
       <div class="atype">
         <h3>Fibre and link faults</h3>
@@ -582,7 +642,7 @@
           <li><b>Fibre Health:</b> reflective fault <span class="tag sim">Simulated</span></li>
           <li><b>OTDR Event Classes:</b> reflective, non-reflective and merged events, and fault sub-categories <span class="tag real">Real</span></li>
         </ul>
-        <p class="meta">OTDR traces</p>
+        <p class="meta"><span class="tag env">Terrestrial</span> Fibre Health · <span class="tag env">Route type not stated</span> OTDR Event Classes · OTDR traces</p>
       </div>
       <div class="atype">
         <h3>Ships over a subsea cable</h3>
@@ -590,7 +650,7 @@
         <ul>
           <li><b>Marlinks-NS (public, CC BY 4.0):</b> 28 km seabed cable off Zeebrugge, 10 days in June 2023, labelled from ship-tracking (AIS) data with vessel length and type</li>
         </ul>
-        <p class="meta"><span class="tag pre">Preliminary</span> DAS on a subsea cable · first analysis running</p>
+        <p class="meta"><span class="tag env">Subsea</span><span class="tag pre">Preliminary</span> DAS on a subsea cable · <a href="#subsea-section">see its section</a></p>
       </div>
       <div class="atype gap">
         <h3>Not covered yet</h3>
@@ -697,7 +757,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.4 · 2026-11-12
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.5 · 2026-11-12
   </footer>
 </main>
 
@@ -932,26 +992,26 @@ function tok(name) {
 const NO_QPU_TEXT = 'Classical simulation (NumPy) · no quantum hardware used';
 const MASTER = {
   fibre_intrusion: {
-    label:'Fibre Intrusion', family:'fibre', eventRate:60, unit:'records', idPrefix:'phi', caution:'',
+    label:'Fibre Intrusion', env:'Terrestrial', family:'fibre', eventRate:60, unit:'records', idPrefix:'phi', caution:'',
     sensor:'Each event is a short vibration recording from 12 neighbouring spots along a buried cable.',
   },
   fibre_health: {
-    label:'Fibre Health', family:'fibre', eventRate:8, unit:'traces', idPrefix:'health',
+    label:'Fibre Health', env:'Terrestrial', family:'fibre', eventRate:8, unit:'traces', idPrefix:'health',
     caution:'Anomalies in this dataset are simulated faults.',
     sensor:'Each event is one full test measurement of a fibre link: the light reflected back from every point along the fibre.',
   },
   fibre_das_audible: {
-    label:'Acoustic Sensing: Audible Signals', family:'fibre', eventRate:40, unit:'segments', idPrefix:'das-a',
+    label:'Acoustic Sensing: Audible Signals', env:'Terrestrial', family:'fibre', eventRate:40, unit:'segments', idPrefix:'das-a',
     caution:'Only 10 anomalies in the development data: treat as a rough indication.',
     sensor:'Each event is a one-second sound recording from 10 spots along the cable.',
   },
   fibre_das_event: {
-    label:'Acoustic Sensing: Field Events', family:'fibre', eventRate:5, unit:'windows', idPrefix:'das-e',
-    caution:'At most 1 validation anomaly per repeat: treat as a rough indication.',
+    label:'Acoustic Sensing: Field Events', env:'Terrestrial', family:'fibre', eventRate:5, unit:'windows', idPrefix:'das-e',
+    caution:'At most 1 validation anomaly per repeat: treat as a rough indication.', valAnomMax:1,
     sensor:'Each event is a short vibration recording from one spot on the cable, taken at a moment the dataset\'s authors marked.',
   },
   fibre_otdr_event: {
-    label:'OTDR Event Classes', family:'fibre', eventRate:12, unit:'segments', idPrefix:'otdr',
+    label:'OTDR Event Classes', env:'Route type not stated by the source', family:'fibre', eventRate:12, unit:'segments', idPrefix:'otdr',
     caution:'Most rows are anomalies, so chance alone scores near 0.87.',
     sensor:'Each event is a short piece of a fibre test measurement: the light reflected back along one stretch of fibre.',
   },
@@ -1233,9 +1293,9 @@ function renderResults() {
     tr.dataset.key = key;
     if (key === CURRENT_KEY) tr.className = 'sel';
     tr.innerHTML = `
-      <td class="name">${MASTER[key].label}${MASTER[key].caution ? `<span class="small">${MASTER[key].caution}</span>` : ''}</td>
+      <td class="name">${MASTER[key].label}<span class="small env">${MASTER[key].env}</span>${MASTER[key].caution ? `<span class="small">${MASTER[key].caution}</span>` : ''}</td>
       <td>${base !== null ? base.toFixed(2)+'%' : naSpan}</td>
-      <td class="num">${best !== null ? fmt3(best) : naSpan}${bar}</td>
+      <td class="num">${best !== null && MASTER[key].valAnomMax === 1 ? `<span class="nm">Not meaningful</span><span class="small">Best ${fmt3(best)} rests on 1 validation anomaly per repeat</span>` : (best !== null ? fmt3(best) : naSpan) + bar}</td>
       <td>${range}</td>
       <td>${finished}</td>
       <td>${counted}</td>
@@ -1243,16 +1303,27 @@ function renderResults() {
       <td>${earlier}</td>`;
     body.appendChild(tr);
   });
+  const sub = document.createElement('tr');
+  sub.innerHTML = `
+      <td class="name"><a href="#subsea-section">Marlinks-NS: ships over a subsea cable</a><span class="small env">Subsea</span><span class="small">Preliminary · public dataset · separate short analysis, not one of the tuning studies above</span></td>
+      <td>${naSpan}</td>
+      <td><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td>
+      <td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td>`;
+  body.appendChild(sub);
 }
 function renderBestTile() {
   const el = document.getElementById('kpi-best');
   const sub = document.getElementById('kpi-best-sub');
   const r = (RESULTS.datasets || {})[CURRENT_KEY] || {};
   const baseFrac = hasNum(r.base_rate_pct) ? r.base_rate_pct / 100 : null;
-  if (hasNum(r.best_validation)) {
+  if (hasNum(r.best_validation) && MASTER[CURRENT_KEY].valAnomMax === 1) {
+    el.className = 'value na';
+    el.textContent = 'Not meaningful';
+    sub.textContent = `Version 2.7 tuning, still running · best ${r.best_validation.toFixed(3)} rests on 1 validation anomaly per repeat · not the model in the replay below`;
+  } else if (hasNum(r.best_validation)) {
     el.className = 'value';
     el.innerHTML = `${r.best_validation.toFixed(3)}<span class="of"> vs base rate ${baseFrac !== null ? baseFrac.toFixed(3) : NA}</span>`;
-    sub.textContent = `Interim · best so far, not final · ${MASTER[CURRENT_KEY].caution || 'no study has finished'}`;
+    sub.textContent = `Version 2.7 tuning, still running · best so far on validation rows, not final · not the model in the replay below${MASTER[CURRENT_KEY].caution ? ' · ' + MASTER[CURRENT_KEY].caution : ''}`;
   } else {
     el.className = 'value na';
     el.textContent = NA;
@@ -1923,7 +1994,7 @@ function applyDataset() {
   document.getElementById('kpi-eps-title').textContent = `${CURRENT.unit[0].toUpperCase()}${CURRENT.unit.slice(1)} / sec`;
   upperLabel.textContent = `${CURRENT.unit}/s`;
   const F = FLOW[CURRENT_KEY];
-  document.getElementById('pipeline-arch').textContent = `${CURRENT.label} · ${F.status === 'recorded' ? 'recorded test rows and decisions' : 'recorded rows by true label · model decisions ' + decisionNA(F).toLowerCase()} · quantum hardware step not yet run`;
+  document.getElementById('pipeline-arch').textContent = `${CURRENT.label} · ${F.status === 'recorded' ? `recorded test rows and decisions of version 2.6 setting A, repeat 1 (test average precision ${F.d.recorded_test_ap.toFixed(3)} vs test base rate ${(F.testPos / F.n).toFixed(3)}) · not the version 2.7 tuning score above` : 'recorded rows by true label · model decisions ' + decisionNA(F).toLowerCase()} · quantum hardware step not yet run`;
   document.querySelectorAll('.only-recorded').forEach((el) => { el.style.display = F.status === 'recorded' ? '' : 'none'; });
   document.querySelectorAll('.only-sample').forEach((el) => { el.style.display = F.status === 'recorded' ? 'none' : ''; });
   overlay.classList.remove('open');
@@ -1983,10 +2054,18 @@ function renderDataDesc() {
     ['Normal rows', esc(normals.join('; ')) + '.'],
     ['Anomaly classes', esc(anoms.join('; ')) + '.'],
   ];
+  rows.splice(1, 0, ['Setting', esc(M.env) + '.']);
   if (M.caution) rows.push(['Note', esc(M.caution)]);
   box.innerHTML = `<h3>Data: ${esc(M.label)}</h3><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
 }
 document.getElementById('ds-select').addEventListener('change',(e)=>{
+  if (e.target.value === 'subsea_marlinks') {
+    // No recorded model run exists yet for the subsea data, so there is
+    // nothing to replay: jump to its own section and keep the replay as it was.
+    e.target.value = CURRENT_KEY;
+    document.getElementById('subsea-section').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
   CURRENT_KEY = e.target.value;
   applyDataset();
   renderDataDesc();
