@@ -71,6 +71,8 @@
   .dd-sum { margin: 0 0 10px; font-size: 13px; color: var(--ink); }
   .cls-list { margin: 0; padding-left: 22px; }
   .cls-list li { margin: 2px 0; }
+  .cls-list.ab { list-style: none; padding-left: 0; }
+  .ab-n { display: inline-block; min-width: 64px; color: var(--accent); font-variant-numeric: tabular-nums; }
   #subsea-top { display: none; }
   body.subsea-mode header .controls, body.subsea-mode header .live { visibility: hidden; }
   body.subsea-mode #subsea-top { display: grid; }
@@ -805,7 +807,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.6.9 · 2026-11-12
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.7.0 · 2026-11-13
   </footer>
 </main>
 
@@ -2202,8 +2204,9 @@ const SUBSEA = {
 };
 function renderSubseaDesc() {
   const box = document.getElementById('ds-desc');
-  const ol = (list) => `<ol class="cls-list">${list.map(([t, d]) => `<li><b>${esc(t)}</b> — ${esc(d)}</li>`).join('')}</ol>`;
+  const ol = (list) => `<ul class="cls-list ab">${list.map(([t, d], i) => `<li><span class="ab-n">${i + 1}.a / ${i + 1}.b</span> <b>${esc(t)}</b> — ${esc(d)}</li>`).join('')}</ul>`;
   const rows = SUBSEA.rows.map(([k, v]) => [k, esc(v)]);
+  rows.push(['Two forms of every class', '<b>a — confirmed by ship tracking:</b> the DAS signal of a ship, with a ship of that type or length reported by AIS within 1,000 m. Measured: results below.<br><b>b — no ship reported:</b> a ship-like DAS signal while AIS reports no vessel within 1,000 m. A possible unregistered vessel, such as a ship that has switched off AIS; its type and length are estimated from the signal by a model trained on the "a" ships. <span class="nm">Planned, not yet measured.</span> A "b" detection is a candidate, not a confirmed ship: a large ship just outside 1,000 m, weather or other sea noise can look similar, and this dataset has no second source such as radar to confirm it.']);
   rows.push(['Anomaly classes by ship type', ol(SUBSEA.classesType)]);
   rows.push(['Anomaly classes by ship length', ol(SUBSEA.classesLength)]);
   rows.push(['About the classes', esc(SUBSEA.note)]);
