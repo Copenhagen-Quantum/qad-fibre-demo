@@ -72,7 +72,7 @@
   .cls-list { margin: 0; padding-left: 22px; }
   .cls-list li { margin: 2px 0; }
   .cls-list.ab { list-style: none; padding-left: 0; }
-  .ab-n { display: inline-block; min-width: 64px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .ab-n { display: inline-block; min-width: 84px; color: var(--accent); font-variant-numeric: tabular-nums; }
   #subsea-top { display: none; }
   body.subsea-mode header .controls, body.subsea-mode header .live { visibility: hidden; }
   body.subsea-mode #subsea-top { display: grid; }
@@ -398,23 +398,23 @@
   <div class="grid" id="subsea-top" style="margin-bottom: 14px;">
     <div class="panel kpi span3">
       <h2>Ship windows</h2>
-      <div class="value na" id="ss-k-share">Analysis running</div>
-      <div class="sub">Share of 10-second windows with a ship within 1,000 m · from tonight's data check</div>
+      <div class="value" id="ss-k-share">32.4%</div>
+      <div class="sub">Share of 10-second windows with a ship within 1,000 m: 24,250 of 74,771 · 31.9% on the 3 held-out days · this is the chance level for average precision</div>
     </div>
     <div class="panel kpi span3">
       <h2>QAD 2.7.9 <span class="demo-chip">Preliminary</span></h2>
-      <div class="value na" id="ss-k-v9">Analysis running</div>
-      <div class="sub" id="ss-k-v9-sub">Production version · own short tune · score on the 3 held-out days</div>
+      <div class="value" id="ss-k-v9">0.912</div>
+      <div class="sub" id="ss-k-v9-sub">ROC-AUC · production version · own short tune · 3 held-out days (23–25 June) · average precision 0.858 against 0.319 by chance</div>
     </div>
     <div class="panel kpi span3">
       <h2>QAD 2.7.10 <span class="demo-chip">Preliminary</span></h2>
-      <div class="value na" id="ss-k-v10">Analysis running</div>
-      <div class="sub" id="ss-k-v10-sub">Release candidate · own short tune · score on the 3 held-out days</div>
+      <div class="value" id="ss-k-v10">0.912</div>
+      <div class="sub" id="ss-k-v10-sub">ROC-AUC · release candidate · own short tune · same 3 held-out days · identical to 2.7.9 in every digit</div>
     </div>
     <div class="panel kpi span3">
       <h2>Status</h2>
-      <div class="value na">Running on GenomeDK</div>
-      <div class="sub">Results added on 13 November before 08:55</div>
+      <div class="value">Finished</div>
+      <div class="sub">On GenomeDK, 13 November 03:46 CET · on this dataset the best classical method scores higher (Mahalanobis distance, ROC-AUC 0.931)</div>
     </div>
   </div>
 
@@ -609,11 +609,80 @@
       <table class="res-table" id="subsea-results">
         <thead><tr><th>Model</th><th>Settings</th><th>ROC-AUC</th><th>Average precision (vs share of ship windows)</th><th>Ships caught at 1% false alarms</th><th>Ships caught at 5% false alarms</th></tr></thead>
         <tbody>
-          <tr><td class="name">QAD 2.7.9</td><td>Default · short tune</td><td colspan="4"><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td></tr>
-          <tr><td class="name">QAD 2.7.10 release candidate</td><td>Default · short tune</td><td colspan="4"><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td></tr>
-          <tr><td class="name">Classical methods</td><td>Default · short tune</td><td colspan="4"><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td></tr>
+          <tr><td class="name">QAD 2.7.9</td><td>Default</td><td class="num">0.906<span class="small">0.885–0.924</span></td><td class="num">0.844<span class="small">vs 0.319</span></td><td class="num">33.5%</td><td class="num">62.2%</td></tr>
+          <tr><td class="name">QAD 2.7.9</td><td>Own short tune</td><td class="num">0.912<span class="small">0.894–0.929</span></td><td class="num">0.858<span class="small">vs 0.319</span></td><td class="num">40.4%</td><td class="num">65.2%</td></tr>
+          <tr><td class="name">QAD 2.7.10 release candidate</td><td>Default</td><td class="num">0.906<span class="small">0.885–0.924</span></td><td class="num">0.844<span class="small">vs 0.319</span></td><td class="num">33.5%</td><td class="num">62.2%</td></tr>
+          <tr><td class="name">QAD 2.7.10 release candidate</td><td>Own short tune</td><td class="num">0.912<span class="small">0.894–0.929</span></td><td class="num">0.858<span class="small">vs 0.319</span></td><td class="num">40.4%</td><td class="num">65.2%</td></tr>
+          <tr><td class="name">Mahalanobis distance <span class="small">classical</span></td><td>Short tune (kept the default)</td><td class="num">0.931<span class="small">0.914–0.948</span></td><td class="num">0.898<span class="small">vs 0.319</span></td><td class="num">55.6%</td><td class="num">74.5%</td></tr>
+          <tr><td class="name">Isolation forest <span class="small">classical</span></td><td>Default</td><td class="num">0.912<span class="small">0.893–0.930</span></td><td class="num">0.864<span class="small">vs 0.319</span></td><td class="num">41.2%</td><td class="num">68.1%</td></tr>
+          <tr><td class="name">Isolation forest <span class="small">classical</span></td><td>Short tune</td><td class="num">0.927<span class="small">0.909–0.944</span></td><td class="num">0.893<span class="small">vs 0.319</span></td><td class="num">56.5%</td><td class="num">73.7%</td></tr>
+          <tr><td class="name">One-class SVM <span class="small">classical</span></td><td>Default</td><td class="num">0.896<span class="small">0.875–0.917</span></td><td class="num">0.847<span class="small">vs 0.319</span></td><td class="num">39.6%</td><td class="num">64.3%</td></tr>
+          <tr><td class="name">One-class SVM <span class="small">classical</span></td><td>Short tune</td><td class="num">0.890<span class="small">0.869–0.911</span></td><td class="num">0.849<span class="small">vs 0.319</span></td><td class="num">41.9%</td><td class="num">65.2%</td></tr>
+          <tr><td class="name">Signal energy alone <span class="small">classical</span></td><td>No settings to tune</td><td class="num">0.918<span class="small">0.899–0.936</span></td><td class="num">0.868<span class="small">vs 0.319</span></td><td class="num">43.5%</td><td class="num">66.0%</td></tr>
+          <tr><td class="name">Supervised reference <span class="small">logistic regression · trained with the ship labels, so not a like-for-like competitor</span></td><td>Short tune</td><td class="num">0.949<span class="small">0.935–0.964</span></td><td class="num">0.934<span class="small">vs 0.319</span></td><td class="num">72.8%</td><td class="num">84.8%</td></tr>
         </tbody>
       </table>
+    </div>
+    <div class="guide">
+      <h3>How to read this</h3>
+      <ul>
+        <li>All rows: ship within 1,000 m, scored once on the 3 held-out days (23–25 June, 22,009 windows, 7,012 with a ship). Small numbers under ROC-AUC: 95% range from a block bootstrap over the held-out days.</li>
+        <li><b>Average precision</b> is compared with 0.319, the share of held-out windows with a ship, which is what random guessing scores.</li>
+        <li><b>Ships caught at 1% / 5% false alarms:</b> the share of ship windows flagged when the alarm level is set so that 1% / 5% of the held-out windows without a ship are flagged.</li>
+        <li><b>QAD 2.7.9 and 2.7.10 give the same numbers in every digit</b>, default and tuned. Each was tuned separately from its default settings and both tunes picked the same setting; 2.7.10 changes speed and robustness, not the model's maths.</li>
+        <li><b>On this dataset QAD is below the best classical methods:</b> Mahalanobis distance 0.931 and the tuned isolation forest 0.927, against 0.912 for QAD. QAD is above the one-class SVM. The ranges overlap, so the gap is not settled by one short tune.</li>
+      </ul>
+    </div>
+    <h3 style="margin:16px 0 8px; font-size:14px;">Detection by ship length and type</h3>
+    <div class="tbl-wrap">
+      <table class="res-table" id="subsea-by-vessel">
+        <thead><tr><th>Class (numbers as in the dataset description)</th><th>Ship windows, held-out days</th><th>QAD 2.7.10 release candidate, tuned</th><th>Mahalanobis distance, tuned</th></tr></thead>
+        <tbody>
+          <tr><td class="name">L1 · Under 50 m</td><td class="num">197</td><td class="num">21.3%</td><td class="num">27.9%</td></tr>
+          <tr><td class="name">L2 · 50–150 m</td><td class="num">2,240</td><td class="num">42.5%</td><td class="num">55.8%</td></tr>
+          <tr><td class="name">L3 · 150–250 m</td><td class="num">3,250</td><td class="num">74.7%</td><td class="num">83.0%</td></tr>
+          <tr><td class="name">L4 · 250 m and over</td><td class="num">1,094</td><td class="num">89.1%</td><td class="num">93.6%</td></tr>
+          <tr><td class="name">L5 · Length not reported</td><td class="num">231</td><td class="num">74.9%</td><td class="num">84.4%</td></tr>
+          <tr><td class="name">T1 · Container ships</td><td class="num">1,252</td><td class="num">84.1%</td><td class="num">91.0%</td></tr>
+          <tr><td class="name">T2 · Ro-Ro cargo ships</td><td class="num">957</td><td class="num">68.7%</td><td class="num">79.3%</td></tr>
+          <tr><td class="name">T3 · Chemical and oil products tankers</td><td class="num">1,202</td><td class="num">77.2%</td><td class="num">84.5%</td></tr>
+          <tr><td class="name">T4 · Hopper dredgers</td><td class="num">987</td><td class="num">32.9%</td><td class="num">47.9%</td></tr>
+          <tr><td class="name">T5 · Vehicle carriers</td><td class="num">716</td><td class="num">62.7%</td><td class="num">74.7%</td></tr>
+          <tr><td class="name">T7 · Bulk carriers</td><td class="num">450</td><td class="num">78.2%</td><td class="num">84.4%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="guide">
+      <h3>How to read this</h3>
+      <ul>
+        <li>Share of each class's ship windows flagged at the alarm level that gives 5% false alarms on the held-out windows without a ship. QAD 2.7.9 gives the same numbers as 2.7.10.</li>
+        <li>Large ships are caught far more often than small ones: 89% of windows with a ship of 250 m or more, 21% with a ship under 50 m. Hopper dredgers are the hardest type (33%).</li>
+        <li>T6 general cargo ships (333 windows), T8 LPG tankers (318) and T9 other types (797) were not broken out in this run.</li>
+      </ul>
+    </div>
+
+    <h3 style="margin:22px 0 8px; font-size:15px;" id="subsea-dark">Possible unregistered vessels (class "b") <span class="nm">Preliminary, unconfirmed</span></h3>
+    <p class="lead" style="margin-top:0">A "b" detection is a ship-like DAS signal while AIS reports no vessel within 1,000 m of the cable. The detector is the QAD 2.7.10 release candidate as tuned above on the "a" ships. Its alarm levels were set on 21–22 June, and it was run once on the 61.1 held-out hours (23–25 June).</p>
+    <div class="tbl-wrap">
+      <table class="res-table" id="subsea-dark-results">
+        <thead><tr><th>Alarm level</th><th>Windows flagged with no AIS vessel within 1 km</th><th>Nearest AIS vessel 1–2 km</th><th>2–5 km</th><th>Over 5 km</th><th>Expected from false alarms alone</th><th>Moving ship-like source beyond 2 km (candidates)</th></tr></thead>
+        <tbody>
+          <tr><td class="name">1% false alarms</td><td class="num">236</td><td class="num">151</td><td class="num">75</td><td class="num">10</td><td class="num">about 150</td><td class="num"><b>0</b></td></tr>
+          <tr><td class="name">5% false alarms</td><td class="num">918</td><td class="num">662</td><td class="num">226</td><td class="num">30</td><td class="num">about 750</td><td class="num"><b>2</b><span class="small">29 windows, 4.8 minutes, 0.13% of the held-out hours</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="guide">
+      <h3>What this shows</h3>
+      <ul>
+        <li><b>Headline:</b> at the 1% level, no candidate. At the 5% level, 2 candidates. In both, AIS reports a chemical/oil products tanker of about 185 m at 3.6–4.7 km, so that tanker is the more likely source. So there is no clear sign of an unregistered vessel in these 3 days, but the test is strict and misses many real ships (see below).</li>
+        <li><b>Why the candidates count only beyond 2 km:</b> large ships are heard well beyond 1 km, so flags with an AIS vessel 1–2 km away most likely come from that ship.</li>
+        <li><b>Flags in total:</b> 1.6% of the windows with no AIS vessel within 1 km are flagged at the 1% level, against 1% expected from false alarms alone. Most flags are single windows or have a peak that does not move along the cable.</li>
+        <li><b>No window is free of ships:</b> every window has some AIS vessel within 9.2 km.</li>
+        <li><b>The moving-source test is strict:</b> it passes only about 30% of flagged runs from real AIS ships within 1 km. It cannot follow a ship crossing the cable at a right angle, and it places the source only to within 194 m.</li>
+        <li><b>Size and type of a candidate cannot be read reliably yet.</b> A classical model trained on the "a" ships reads the length band above chance for ships within 1 km (balanced accuracy 0.54; chance 0.25), but it recognises almost no vessels under 50 m and drops to 0.34 at 1–2 km. Type: 0.31 against 0.20 by chance.</li>
+        <li><b>No candidate can be confirmed:</b> this dataset has no radar or satellite data.</li>
+      </ul>
     </div>
     <div class="guide">
       <h3>Read with care</h3>
@@ -697,8 +766,9 @@
         <p class="ds">Marlinks-NS (public, CC BY 4.0)</p>
         <ul>
           <li><b>Ship within 1,000 m</b> — engine and propeller tones picked up by a 28 km seabed cable off Zeebrugge, over 10 days in June 2023.</li>
-          <li><b>By ship type</b> — cargo ships, tankers, passenger ships, fishing vessels, tugs and service vessels, sailing and pleasure craft, from ship-tracking (AIS) data.</li>
-          <li><b>By ship length</b> — under 50 m, 50–150 m, 150–250 m and over 250 m: larger ships are louder and heard from further away.</li>
+          <li><b>By ship type</b> — container ships, Ro-Ro cargo ships, chemical and oil products tankers, hopper dredgers, vehicle carriers, general cargo ships, bulk carriers, LPG tankers, and other types, from ship-tracking (AIS) data.</li>
+          <li><b>By ship length</b> — under 50 m, 50–150 m, 150–250 m, 250 m and over, and not reported: larger ships are louder and heard from further away.</li>
+          <li><b>Possible unregistered vessel</b> — a ship-like signal with no AIS vessel within 1,000 m. Preliminary result: no clear candidate in the 3 held-out days.</li>
         </ul>
         <p class="meta"><span class="tag env">Subsea</span><span class="tag pre">Preliminary</span> DAS on a subsea cable · <a href="#subsea-section">see its section</a></p>
       </div>
@@ -807,7 +877,7 @@
   </section>
 
   <footer id="footer-cite">
-    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.7.0 · 2026-11-13
+    QAD fibre anomaly dashboard for GlobalConnect · Copenhagen Quantum · The pipeline replays recorded test rows and their recorded model decisions at demonstration speed. Tuning scores are interim best-so-far validation results. · v0.7.1 · 2026-11-13
   </footer>
 </main>
 
@@ -1357,9 +1427,9 @@ function renderResults() {
   const sub = document.createElement('tr');
   sub.innerHTML = `
       <td class="name"><a href="#subsea-section">Marlinks-NS: ships over a subsea cable</a><span class="small env">Subsea</span><span class="small">Preliminary · public dataset · separate short analysis, not one of the tuning studies above</span></td>
-      <td>${naSpan}</td>
-      <td><span class="nm">Analysis running</span><span class="small">Results added on 13 November before 08:55</span></td>
-      <td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td><td>${naSpan}</td>`;
+      <td>32.43%</td>
+      <td class="num">0.882<span class="small">average precision on the validation days 21–22 June · QAD 2.7.10 release candidate, short tune (2.7.9 the same) · held-out test ROC-AUC 0.912</span></td>
+      <td>${naSpan}<span class="small">one run</span></td><td>40</td><td>${naSpan}<span class="small">not a 400-trial study</span></td><td>2026-11-13 03:44</td>`;
   body.appendChild(sub);
 }
 function renderBestTile() {
@@ -2181,34 +2251,37 @@ const SUBSEA = {
     ['Setting', 'Subsea. A 28 km telecom cable on the seabed off Zeebrugge, Belgium, in one of the busiest shipping areas in Europe.'],
     ['How it was measured', 'Distributed Acoustic Sensing (DAS) with an OptoDAS interrogator, 16–25 June 2023, continuously. A 2.55 km stretch of the cable, 14.7–17.3 km from the interrogator, with 250 sensing points about 10 m apart.'],
     ['One row', 'One 10-second window: the vibration energy at each of the 250 sensing points in the 4–98 Hz band (49–51 Hz removed).'],
-    ['Size', '74,771 windows. The share of windows with a ship within 1,000 m is measured in tonight\'s data check.'],
+    ['Size', '74,771 windows. 24,250 of them (32.4%) have a ship within 1,000 m. The data check passed: file intact, no missing values, time order correct. Four days are less than 95% covered by the recording.'],
     ['Normal rows', 'No ship within 1,000 m of the cable: sea and seabed noise, and distant shipping.'],
     ['Anomaly', 'A ship within 1,000 m of the cable, the distance used by the dataset\'s own study. Ships over a subsea cable are the main source of anchor and fishing-gear damage.'],
   ],
   classesType: [
-    ['Cargo ships', 'Container ships and bulk carriers. Large, with slow-turning propellers: loud, low-pitched tones, picked up from far away.'],
-    ['Tankers', 'Oil, gas and chemical tankers. Large and heavy, with sound similar to cargo ships.'],
-    ['Passenger ships and ferries', 'Fast and powerful, often on fixed routes, so they cross the same cable stretch repeatedly.'],
-    ['Fishing vessels', 'Small to medium. Trawling gear can touch the seabed, which makes them a direct risk to a subsea cable.'],
-    ['Tugs, pilots and service vessels', 'Small, powerful and manoeuvring: higher-pitched, irregular sound.'],
-    ['Sailing and pleasure craft', 'Small and quiet; only picked up close to the cable, if at all.'],
-    ['Other or not reported', 'Ship types that fit none of the groups above, or that the AIS message does not report.'],
+    ['Container ships', '4,316 windows. Large ships with slow-turning propellers: loud, low-pitched tones, picked up from far away.'],
+    ['Ro-Ro cargo ships', '3,777 windows. Roll-on/roll-off ships for trucks and trailers, often on fixed routes, so they cross the same cable stretch repeatedly.'],
+    ['Chemical and oil products tankers', '3,712 windows. Large and heavy, with sound similar to cargo ships.'],
+    ['Hopper dredgers', '2,582 windows. Dredge sand and silt from the seabed, often working slowly in one area.'],
+    ['Vehicle carriers', '2,022 windows. Large car-transport ships.'],
+    ['General cargo ships', '1,719 windows. Medium-sized cargo ships.'],
+    ['Bulk carriers', '1,618 windows. Large ships carrying loose cargo such as grain or ore.'],
+    ['LPG tankers', '951 windows. Gas tankers.'],
+    ['Other types or type not reported', '3,553 windows. All other ship types together, such as passenger ships, and windows where AIS does not report the type.'],
   ],
   classesLength: [
-    ['Under 50 m', 'Small boats: weak signal, only picked up close by.'],
-    ['50–150 m', 'Medium vessels such as coasters, fishing and service vessels.'],
-    ['150–250 m', 'Large cargo ships, tankers and ferries.'],
-    ['Over 250 m', 'The largest container ships and tankers: the loudest and lowest-pitched.'],
+    ['Under 50 m', '896 windows. Small boats: weak signal, only picked up close by.'],
+    ['50–150 m', '8,082 windows. Medium vessels.'],
+    ['150–250 m', '11,291 windows. Large cargo ships and tankers.'],
+    ['250 m and over', '3,034 windows. The largest container ships and tankers: the loudest and lowest-pitched.'],
+    ['Length not reported', '947 windows. AIS does not report the length.'],
   ],
-  note: 'The ship type and length come from AIS ship-tracking data. Groups are listed as in AIS reporting; the counts per group in this dataset, and how often each is detected, are added with the results. Ships that do not send AIS are not labelled.',
+  note: 'Type and length are those of the nearest vessel, from AIS ship-tracking data. Counts are 10-second windows with that vessel within 1,000 m, over all 10 days. How often each class is detected on the held-out days is in the table "Detection by ship length and type" below. Ships that do not send AIS are not labelled.',
 };
 function renderSubseaDesc() {
   const box = document.getElementById('ds-desc');
-  const ol = (list) => `<ul class="cls-list ab">${list.map(([t, d], i) => `<li><span class="ab-n">${i + 1}.a / ${i + 1}.b</span> <b>${esc(t)}</b> — ${esc(d)}</li>`).join('')}</ul>`;
+  const ol = (list, p) => `<ul class="cls-list ab">${list.map(([t, d], i) => `<li><span class="ab-n">${p}${i + 1}.a / ${p}${i + 1}.b</span> <b>${esc(t)}</b> — ${esc(d)}</li>`).join('')}</ul>`;
   const rows = SUBSEA.rows.map(([k, v]) => [k, esc(v)]);
-  rows.push(['Two forms of every class', '<b>a — confirmed by ship tracking:</b> the DAS signal of a ship, with a ship of that type or length reported by AIS within 1,000 m. Measured: results below.<br><b>b — no ship reported:</b> a ship-like DAS signal while AIS reports no vessel within 1,000 m. A possible unregistered vessel, such as a ship that has switched off AIS; its type and length are estimated from the signal by a model trained on the "a" ships. <span class="nm">Planned, not yet measured.</span> A "b" detection is a candidate, not a confirmed ship: a large ship just outside 1,000 m, weather or other sea noise can look similar, and this dataset has no second source such as radar to confirm it.']);
-  rows.push(['Anomaly classes by ship type', ol(SUBSEA.classesType)]);
-  rows.push(['Anomaly classes by ship length', ol(SUBSEA.classesLength)]);
+  rows.push(['Two forms of every class', '<b>a — confirmed by ship tracking:</b> the DAS signal of a ship, with a ship of that type or length reported by AIS within 1,000 m. Measured: results below.<br><b>b — no ship reported:</b> a ship-like DAS signal while AIS reports no vessel within 1,000 m. A possible unregistered vessel, such as a ship that has switched off AIS. <span class="nm">Preliminary, unconfirmed:</span> no clear candidate in the 3 held-out days; a model trained on the "a" ships cannot yet read the type and length of a "b" candidate reliably (see "Possible unregistered vessels" below). A "b" detection is a candidate, not a confirmed ship: a large ship just outside 1,000 m, weather or other sea noise can look similar, and this dataset has no second source such as radar to confirm it.']);
+  rows.push(['Anomaly classes by ship type', ol(SUBSEA.classesType, 'T')]);
+  rows.push(['Anomaly classes by ship length', ol(SUBSEA.classesLength, 'L')]);
   rows.push(['About the classes', esc(SUBSEA.note)]);
   rows.push(['Note', 'Preliminary. No live replay: there are no recorded model decisions for this dataset yet. The results of QAD 2.7.9 and QAD 2.7.10 are shown below.']);
   box.innerHTML = `<h3>Data: ${esc(SUBSEA.label)} <span class="nm">Preliminary</span></h3><p class="dd-sum">Distributed Acoustic Sensing (DAS) on a 28 km telecom cable on the seabed off Zeebrugge, Belgium. A 2.55 km stretch with 250 sensing points, about 10 m apart, was recorded continuously for 10 days (16–25 June 2023). The recording is cut into 74,771 windows of 10 seconds. Each window is labelled from ship-tracking (AIS) data with the distance to the nearest vessel and that vessel's length and type.</p><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
