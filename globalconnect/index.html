@@ -129,6 +129,7 @@
   .tbl-wrap { overflow-x: auto; }
   .res-table td .small.env { color: var(--accent); }
   .res-table a, .atype a { color: var(--accent); }
+  .res-table td .small.st { color: var(--amber); font-weight: 600; }
   .res-table td .nm, .nm { color: var(--amber); font-size: 13px; font-weight: 600; }
   .atype .tag.env { background: var(--chip); color: var(--ink); }
   .ss-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
@@ -548,9 +549,9 @@
   <section class="section" id="results-section">
     <div class="section-head">
       <h2 class="big">Tuning results per dataset</h2>
-      <span class="section-meta">Interim · refreshed from the study records · <span id="res-asof"></span></span>
+      <span class="section-meta"><span class="nm">Still tuning</span> · runs paused 13 Nov 07:27 for a software update · <span id="res-asof"></span></span>
     </div>
-    <p class="lead">Each study runs as three independent repeats and needs 400 counted trials per repeat to finish. A counted trial is one the study accepts towards that total. No study has finished, so every score below is a best-so-far validation result.</p>
+    <p class="lead">Each study runs as three independent repeats and needs 400 counted trials per repeat to finish. A counted trial is one the study accepts towards that total. No study has finished. All runs were paused on 13 November at 07:27 for a software update and will continue from the levels shown here, so every number below is <b>still tuning</b>: a best-so-far validation result, not a final result.</p>
     <div class="tbl-wrap">
       <table class="res-table">
         <thead><tr>
@@ -569,9 +570,9 @@
     <div class="guide">
       <h3>How to read these results</h3>
       <ul>
-        <li><b>All scores are interim.</b> No study has finished. Call them best-so-far validation results, not final results and not test results.</li>
+        <li><b>Still tuning.</b> No study has finished. Every number in this table is the level reached when the runs were paused on 13 November: best-so-far validation results, not final results and not test results.</li>
         <li><b>Compare every score with its base rate.</b> The score is average precision. Guessing at random already scores about the share of anomalies in the data.</li>
-        <li><b>OTDR Event Classes</b> has 87.25% anomalies (125,832 rows). Its average precision has a baseline near 0.87. A score of 0.87 there means almost no skill, not "87% performance". This dataset is being re-run with corrected inputs, so no score is shown for it yet.</li>
+        <li><b>OTDR Event Classes</b> has 87.25% anomalies (125,832 rows). Its average precision has a baseline near 0.87. A score of 0.87 there means almost no skill, not "87% performance". The score shown comes from its re-run with corrected inputs (31 measured features), which had finished only 4–5 trials per repeat when paused.</li>
         <li><b>Acoustic Sensing: Field Events</b> has very few anomalies, at most 1 validation anomaly per repeat. One event changes the score a lot, so treat it as a rough indication.</li>
         <li><b>Acoustic Sensing: Audible Signals</b> has 10 anomalies in the development data. The same caution applies.</li>
         <li><b>This table shows version 2.7 only.</b> The replay, matrix and score tile at the top of the page show one recorded version 2.6 run; the two versions are not mixed in either place.</li>
@@ -935,7 +936,7 @@
 // Tuning results. Refresh by replacing this block only.
 // A field set to null shows "Not yet available" on the page.
 const RESULTS = {
-  "generated": "2026-11-13 07:11",
+  "generated": "2026-11-13 07:55",
   "datasets": {
     "fibre_intrusion": {
       "best_validation": 0.8449,
@@ -1072,18 +1073,32 @@ const RESULTS = {
           "label": "v2.6 setting B",
           "value": 0.0689
         }
-      ]
+      ],
+      "note": "Shown: the small-sample study on a laptop. Full-sample re-run on GenomeDK (about 220,000 windows, about 5% events): best 0.510, trials finished 2 / 2 / 2, counted 0 / 0 / 0, last update 2026-11-12 23:34. Still tuning."
     },
     "fibre_otdr_event": {
-      "best_validation": null,
-      "range": null,
-      "trials_finished": null,
-      "counted_trials": null,
-      "last_update": null,
+      "best_validation": 0.898,
+      "range": [
+        0.8908,
+        0.898
+      ],
+      "trials_finished": [
+        5,
+        4,
+        5
+      ],
+      "counted_trials": [
+        0,
+        0,
+        0
+      ],
+      "last_update": "2026-11-13 01:37",
       "base_rate_pct": 87.2465,
-      "earlier_test_scores": []
+      "earlier_test_scores": [],
+      "note": "Re-run with corrected inputs (31 measured features), code 2.7.5."
     }
-  }
+  },
+  "paused": "2026-11-13 07:27"
 };
 </script>
 <script>
@@ -1394,6 +1409,7 @@ window.QAD_FLOW_STATE = () => ({
 // Tuning results — rendered only from the RESULTS block. A missing or
 // empty field shows "Not yet available"; nothing is ever filled in here.
 // =====================================================================
+const ST = (on) => on ? '<span class="small st">Still tuning</span>' : '';
 function renderResults() {
   const asof = document.getElementById('res-asof');
   asof.textContent = RESULTS.generated ? `readings to ${RESULTS.generated}` : NA;
@@ -1414,12 +1430,12 @@ function renderResults() {
     tr.dataset.key = key;
     if (key === CURRENT_KEY) tr.className = 'sel';
     tr.innerHTML = `
-      <td class="name">${MASTER[key].label}<span class="small env">${MASTER[key].env}</span>${MASTER[key].caution ? `<span class="small">${MASTER[key].caution}</span>` : ''}</td>
+      <td class="name">${MASTER[key].label}<span class="small env">${MASTER[key].env}</span>${MASTER[key].caution ? `<span class="small">${MASTER[key].caution}</span>` : ''}${r.note ? `<span class="small">${r.note}</span>` : ''}</td>
       <td>${base !== null ? base.toFixed(2)+'%' : naSpan}</td>
-      <td class="num">${best !== null && MASTER[key].valAnomMax === 1 ? `<span class="nm">Not meaningful</span><span class="small">Best ${fmt3(best)} rests on 1 validation anomaly per repeat</span>` : (best !== null ? fmt3(best) : naSpan) + bar}</td>
-      <td>${range}</td>
-      <td>${finished}</td>
-      <td>${counted}</td>
+      <td class="num">${best !== null && MASTER[key].valAnomMax === 1 ? `<span class="nm">Not meaningful</span><span class="small">Best ${fmt3(best)} rests on 1 validation anomaly per repeat</span>` : (best !== null ? fmt3(best) : naSpan) + bar}${ST(best !== null)}</td>
+      <td>${range}${ST(hasList(r.range))}</td>
+      <td>${finished}${ST(hasList(r.trials_finished))}</td>
+      <td>${counted}${ST(hasList(r.counted_trials))}</td>
       <td>${r.last_update || naSpan}</td>
 `;
     body.appendChild(tr);
@@ -1428,8 +1444,8 @@ function renderResults() {
   sub.innerHTML = `
       <td class="name"><a href="#subsea-section">Marlinks-NS: ships over a subsea cable</a><span class="small env">Subsea</span><span class="small">Preliminary · public dataset · separate short analysis, not one of the tuning studies above</span></td>
       <td>32.43%</td>
-      <td class="num">0.882<span class="small">average precision on the validation days 21–22 June · QAD 2.7.10 release candidate, short tune (2.7.9 the same) · held-out test ROC-AUC 0.912</span></td>
-      <td>${naSpan}<span class="small">one run</span></td><td>40</td><td>${naSpan}<span class="small">not a 400-trial study</span></td><td>2026-11-13 03:44</td>`;
+      <td class="num">0.882<span class="small st">Still tuning · short indicative tune</span><span class="small">average precision on the validation days 21–22 June · QAD 2.7.10 release candidate, short tune (2.7.9 the same) · held-out test ROC-AUC 0.912</span></td>
+      <td>${naSpan}<span class="small">one run</span></td><td>40<span class="small st">Still tuning</span></td><td>${naSpan}<span class="small">not a 400-trial study</span></td><td>2026-11-13 03:44</td>`;
   body.appendChild(sub);
 }
 function renderBestTile() {
@@ -1451,11 +1467,11 @@ function renderBestTile() {
   if (hasNum(r.best_validation) && MASTER[CURRENT_KEY].valAnomMax === 1) {
     el.className = 'value na';
     el.textContent = 'Not meaningful';
-    sub.textContent = `Version 2.7 tuning, still running · best ${r.best_validation.toFixed(3)} rests on 1 validation anomaly per repeat · the replay below shows rows by true label, no model decisions`;
+    sub.textContent = `Version 2.7 · still tuning (runs paused 13 Nov for a software update) · best ${r.best_validation.toFixed(3)} rests on 1 validation anomaly per repeat · the replay below shows rows by true label, no model decisions`;
   } else if (hasNum(r.best_validation)) {
     el.className = 'value';
     el.innerHTML = `${r.best_validation.toFixed(3)}<span class="of"> vs base rate ${baseFrac !== null ? baseFrac.toFixed(3) : NA}</span>`;
-    sub.textContent = `Version 2.7 tuning, still running · best so far on validation rows, not final · the replay below shows rows by true label, no model decisions${MASTER[CURRENT_KEY].caution ? ' · ' + MASTER[CURRENT_KEY].caution : ''}`;
+    sub.textContent = `Version 2.7 · still tuning (runs paused 13 Nov for a software update) · best so far on validation rows, not final · the replay below shows rows by true label, no model decisions${MASTER[CURRENT_KEY].caution ? ' · ' + MASTER[CURRENT_KEY].caution : ''}`;
   } else {
     el.className = 'value na';
     el.textContent = NA;
