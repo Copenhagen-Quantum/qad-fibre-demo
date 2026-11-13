@@ -617,6 +617,33 @@
         </tbody>
       </table>
     </div>
+    <div class="panel" style="margin-top:12px;padding:12px">
+      <h3 style="margin:0 0 6px;font-size:14px;">Flow of held-out windows through QAD <span class="demo-chip">Replay at recorded rates</span> <span class="nm">Still tuning</span></h3>
+      <canvas id="ss-anim" style="width:100%;height:190px;display:block"></canvas>
+      <div class="hint" id="ss-anim-cnt"></div>
+      <p class="hint">Each dot is one 10-second window. Dots enter at the real mix of the held-out days (7,012 ship windows of 22,009) and leave through the four outcomes at the recorded rates of QAD 2.7.10 (tuned) at the 5% alarm level: 4,583 caught, 2,429 missed, 757 false alarms, 14,240 correct normal. The dots are not individual recorded windows: per-window decisions are not recorded for this dataset yet.</p>
+    </div>
+    <script>
+    (function(){
+      const cv=document.getElementById('ss-anim'); if(!cv) return; const cx=cv.getContext('2d');
+      const P=7012,N=14997,TP=4583,FP=757; const pShip=P/(P+N), pCatch=TP/P, pFA=FP/N;
+      const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+      let W=0,H=0; const fit=()=>{const r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*devicePixelRatio; cv.height=H*devicePixelRatio; cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}; fit(); addEventListener('resize',fit);
+      const lanes=[['Caught',0.14],['Missed',0.38],['False alarm',0.62],['Correct normal',0.86]]; const cnt=[0,0,0,0]; let dots=[]; let t0=performance.now();
+      const stages=['Windows','Features','QAD score','Alarm level','Outcome'];
+      function spawn(){const ship=Math.random()<pShip; const lane= ship?(Math.random()<pCatch?0:1):(Math.random()<pFA?2:3); dots.push({x:0,y:0.5+(Math.random()-0.5)*0.25,ship,lane,v:0.18+Math.random()*0.05});}
+      function step(now){if(Math.abs(cv.getBoundingClientRect().width-W)>1) fit(); if(!W){t0=now; requestAnimationFrame(step); return;} const dt=Math.min(0.05,(now-t0)/1000); t0=now; for(let i=0;i<3;i++) if(Math.random()<dt*14) spawn();
+        cx.clearRect(0,0,W,H); const ink=css('--muted'), acc=css('--accent'), amb=css('--amber'), txt=css('--ink');
+        cx.font='11px system-ui'; cx.fillStyle=ink; stages.forEach((s,i)=>{const x=W*(0.04+i*0.19); cx.fillText(s,x,12); cx.fillRect(x,16,1,H-20);});
+        lanes.forEach(([n,y],i)=>{cx.fillStyle=txt; cx.fillText(n+': '+cnt[i].toLocaleString(),W*0.82,H*y+4);});
+        dots=dots.filter(d=>{d.x+=d.v*dt; const split=0.62; let y=d.y; if(d.x>split){const f=Math.min(1,(d.x-split)/0.12); y=d.y+(lanes[d.lane][1]-d.y)*f;}
+          if(d.x>=0.80){cnt[d.lane]++; return false;}
+          cx.fillStyle=d.ship?amb:acc; cx.globalAlpha=0.85; cx.beginPath(); cx.arc(W*d.x,H*y,2.6,0,6.283); cx.fill(); cx.globalAlpha=1; return true;});
+        const tot=cnt[0]+cnt[1]+cnt[2]+cnt[3]; if(tot) document.getElementById('ss-anim-cnt').textContent='Replayed so far: '+tot+' windows · ship windows caught '+(100*cnt[0]/Math.max(1,cnt[0]+cnt[1])).toFixed(1)+'% (recorded 65.4%) · false alarms '+(100*cnt[2]/Math.max(1,cnt[2]+cnt[3])).toFixed(1)+'% of normal windows (recorded 5.05%) · amber = ship within 1 km, blue = no ship';
+        requestAnimationFrame(step);}
+      requestAnimationFrame(step);
+    })();
+    </script>
     <p class="hint" style="margin-top:6px">Counts are windows of 10 seconds, not ships: one passing ship covers many windows. Preliminary public-data analysis, not GlobalConnect data. No live replay for this dataset: the counts come from the recorded final scoring.</p>
     <div class="tbl-wrap" style="margin-top:14px">
       <table class="res-table" id="subsea-results">
@@ -2311,7 +2338,7 @@ function renderSubseaDesc() {
   rows.push(['Anomaly classes by ship type', ol(SUBSEA.classesType, 'T')]);
   rows.push(['Anomaly classes by ship length', ol(SUBSEA.classesLength, 'L')]);
   rows.push(['About the classes', esc(SUBSEA.note)]);
-  rows.push(['Note', 'Preliminary. No live replay: there are no recorded model decisions for this dataset yet. The results of QAD 2.7.9 and QAD 2.7.10 are shown below.']);
+  rows.push(['Note', 'Preliminary, still tuning. No per-window recorded decisions yet, so the flow below replays windows at the recorded rates of the held-out days. The results of QAD 2.7.9 and QAD 2.7.10 are shown below.']);
   box.innerHTML = `<h3>Data: ${esc(SUBSEA.label)} <span class="nm">Preliminary</span></h3><p class="dd-sum">Distributed Acoustic Sensing (DAS) on a 28 km telecom cable on the seabed off Zeebrugge, Belgium. A 2.55 km stretch with 250 sensing points, about 10 m apart, was recorded continuously for 10 days (16–25 June 2023). The recording is cut into 74,771 windows of 10 seconds. Each window is labelled from ship-tracking (AIS) data with the distance to the nearest vessel and that vessel's length and type.</p><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
 }
 document.getElementById('ds-select').addEventListener('change',(e)=>{
