@@ -605,19 +605,7 @@
       <div class="ss-step"><b>4 · Two separate tunings</b><span>QAD 2.7.9 and QAD 2.7.10 release candidate, each from default settings, short tune · classical methods with the same budget</span></div>
       <div class="ss-arrow">→</div>
       <div class="ss-step"><b>5 · One final scoring</b><span>on the held-out 3 days · overall and by ship size and type</span></div>
-      <div class="ss-arrow">→</div>
-      <div class="ss-step"><b>6 · Result on the held-out days</b><span>22,009 windows: 7,012 with a ship within 1 km, 14,997 without · QAD 2.7.10 release candidate, tuned (2.7.9 the same) · alarm level fixed on the fit days, before the held-out days were scored</span></div>
     </div>
-    <div class="tbl-wrap" style="margin-top:10px">
-      <table class="res-table" id="subsea-flow-counts">
-        <thead><tr><th>Alarm level (set on the fit days)</th><th>Ship windows caught</th><th>Ship windows missed</th><th>False alarms</th><th>Correct normal</th><th>Share of ship windows caught</th></tr></thead>
-        <tbody>
-          <tr><td class="name">About 1% false alarms<span class="small st">Still tuning · short indicative tune</span></td><td>2,428</td><td>4,584</td><td>104</td><td>14,893</td><td>34.6%<span class="small">false-alarm rate 0.69%</span></td></tr>
-          <tr><td class="name">About 5% false alarms<span class="small st">Still tuning · short indicative tune</span></td><td>4,583</td><td>2,429</td><td>757</td><td>14,240</td><td>65.4%<span class="small">false-alarm rate 5.05%</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="hint" style="margin-top:6px">Counts are windows of 10 seconds, not ships: one passing ship covers many windows. Preliminary public-data analysis, not GlobalConnect data. No live replay for this dataset: the counts come from the recorded final scoring.</p>
     <div class="tbl-wrap" style="margin-top:14px">
       <table class="res-table" id="subsea-results">
         <thead><tr><th>Model</th><th>Settings</th><th>ROC-AUC (secondary)</th><th>Average precision: our measure (vs share of ship windows)</th><th>Ships caught at 1% false alarms</th><th>Ships caught at 5% false alarms</th></tr></thead>
