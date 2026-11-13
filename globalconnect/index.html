@@ -404,18 +404,18 @@
     </div>
     <div class="panel kpi span3">
       <h2>QAD 2.7.9 <span class="demo-chip">Preliminary</span></h2>
-      <div class="value" id="ss-k-v9">0.912</div>
-      <div class="sub" id="ss-k-v9-sub">ROC-AUC · production version · own short tune · 3 held-out days (23–25 June) · average precision 0.858 against 0.319 by chance</div>
+      <div class="value" id="ss-k-v9">0.858<span class="of"> vs chance 0.319</span></div>
+      <div class="sub" id="ss-k-v9-sub">Average precision (our measure) · production version · own short tune, still tuning · 3 held-out days (23–25 June) · ROC-AUC 0.912</div>
     </div>
     <div class="panel kpi span3">
       <h2>QAD 2.7.10 <span class="demo-chip">Preliminary</span></h2>
-      <div class="value" id="ss-k-v10">0.912</div>
-      <div class="sub" id="ss-k-v10-sub">ROC-AUC · release candidate · own short tune · same 3 held-out days · identical to 2.7.9 in every digit</div>
+      <div class="value" id="ss-k-v10">0.858<span class="of"> vs chance 0.319</span></div>
+      <div class="sub" id="ss-k-v10-sub">Average precision (our measure) · release candidate · own short tune, still tuning · same 3 held-out days · identical to 2.7.9 in every digit</div>
     </div>
     <div class="panel kpi span3">
       <h2>Status</h2>
-      <div class="value">Finished</div>
-      <div class="sub">On GenomeDK, 13 November 03:46 CET · on this dataset the best classical method scores higher (Mahalanobis distance, ROC-AUC 0.931)</div>
+      <div class="value">Still tuning</div>
+      <div class="sub">Short indicative tune done on GenomeDK, 13 November 03:46 CET; full tuning to follow · on this dataset the best classical method scores higher (Mahalanobis distance, average precision 0.898)</div>
     </div>
   </div>
 
@@ -620,7 +620,7 @@
     <p class="hint" style="margin-top:6px">Counts are windows of 10 seconds, not ships: one passing ship covers many windows. Preliminary public-data analysis, not GlobalConnect data. No live replay for this dataset: the counts come from the recorded final scoring.</p>
     <div class="tbl-wrap" style="margin-top:14px">
       <table class="res-table" id="subsea-results">
-        <thead><tr><th>Model</th><th>Settings</th><th>ROC-AUC</th><th>Average precision (vs share of ship windows)</th><th>Ships caught at 1% false alarms</th><th>Ships caught at 5% false alarms</th></tr></thead>
+        <thead><tr><th>Model</th><th>Settings</th><th>ROC-AUC (secondary)</th><th>Average precision: our measure (vs share of ship windows)</th><th>Ships caught at 1% false alarms</th><th>Ships caught at 5% false alarms</th></tr></thead>
         <tbody>
           <tr><td class="name">QAD 2.7.9</td><td>Default</td><td class="num">0.906<span class="small">0.885–0.924</span></td><td class="num">0.844<span class="small">vs 0.319</span></td><td class="num">33.5%</td><td class="num">62.2%</td></tr>
           <tr><td class="name">QAD 2.7.9</td><td>Own short tune</td><td class="num">0.912<span class="small">0.894–0.929</span></td><td class="num">0.858<span class="small">vs 0.319</span></td><td class="num">40.4%</td><td class="num">65.2%</td></tr>
@@ -1456,7 +1456,7 @@ function renderResults() {
   sub.innerHTML = `
       <td class="name"><a href="#subsea-section">Marlinks-NS: ships over a subsea cable</a><span class="small env">Subsea</span><span class="small">Preliminary · public dataset · separate short analysis, not one of the tuning studies above</span></td>
       <td>32.43%</td>
-      <td class="num">0.882<span class="small st">Still tuning · short indicative tune</span><span class="small">average precision on the validation days 21–22 June · QAD 2.7.10 release candidate, short tune (2.7.9 the same) · held-out test ROC-AUC 0.912</span></td>
+      <td class="num">0.882<span class="small st">Still tuning · short indicative tune</span><span class="small">average precision on the validation days 21–22 June · QAD 2.7.10 release candidate, short tune (2.7.9 the same) · held-out test average precision 0.858 (ROC-AUC 0.912)</span></td>
       <td>${naSpan}<span class="small">one run</span></td><td>40<span class="small st">Still tuning</span></td><td>${naSpan}<span class="small">not a 400-trial study</span></td><td>2026-11-13 03:44</td>`;
   body.appendChild(sub);
 }
